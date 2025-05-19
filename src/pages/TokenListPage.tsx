@@ -1,28 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { useGenesis, StatusFilter, GenesisLaunch } from '../context/GenesisContext';
 import { Search, Filter, ArrowUpDown, Zap, Clock, CheckCircle, XCircle, AlertCircle, ArrowRight, ChevronRight, ChevronLeft } from 'lucide-react';
-import { useWallet } from '../context/WalletContext';
+// import { useWallet } from '../context/WalletContext';
 import { motion } from 'framer-motion';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
 
 export const TokenListPage: React.FC = () => {
-  const { 
-    genesisLaunches, 
-    loading, 
-    error, 
-    getProjectScore, 
+  const {
+    genesisLaunches,
+    loading,
+    error,
+    getProjectScore,
     isRecommendedToSnipe,
     currentFilter,
     setCurrentFilter,
     pagination,
-    currentPage, 
+    currentPage,
     setCurrentPage,
     fetchGenesisLaunches
   } = useGenesis();
-  
-  const { address, connect, isConnecting } = useWallet();
-  
+
+  // const { address, connect, isConnecting } = useWallet();
+
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sortOption, setSortOption] = useState<string>('score');
 
@@ -83,23 +83,13 @@ export const TokenListPage: React.FC = () => {
         return 'text-light-400 bg-light-500/10 border-light-500/20';
     }
   };
-  
+
   const handleSnipe = async (project: GenesisLaunch) => {
-    if (!address) {
-      await connect();
-      return;
-    }
-    
     // Implement snipe functionality
     console.log('Sniping project:', project.virtual.name);
   };
-  
+
   const handleSubscribe = async (project: GenesisLaunch) => {
-    if (!address) {
-      await connect();
-      return;
-    }
-    
     // Implement subscribe functionality
     console.log('Subscribing to project:', project.virtual.name);
   };
@@ -124,11 +114,10 @@ export const TokenListPage: React.FC = () => {
         {/* Filter Tabs */}
         <div className="flex flex-wrap justify-center mb-8 gap-2">
           <button
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              currentFilter === 'all'
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${currentFilter === 'all'
                 ? 'bg-primary-600 text-white'
                 : 'bg-dark-400 text-light-300 hover:bg-dark-300'
-            }`}
+              }`}
             onClick={() => {
               setCurrentFilter('all');
               setCurrentPage(1);
@@ -137,11 +126,10 @@ export const TokenListPage: React.FC = () => {
             All Tokens
           </button>
           <button
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              currentFilter === 'active'
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${currentFilter === 'active'
                 ? 'bg-primary-600 text-white'
                 : 'bg-dark-400 text-light-300 hover:bg-dark-300'
-            }`}
+              }`}
             onClick={() => {
               setCurrentFilter('active');
               setCurrentPage(1);
@@ -150,11 +138,10 @@ export const TokenListPage: React.FC = () => {
             Active
           </button>
           <button
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              currentFilter === 'ended'
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${currentFilter === 'ended'
                 ? 'bg-primary-600 text-white'
                 : 'bg-dark-400 text-light-300 hover:bg-dark-300'
-            }`}
+              }`}
             onClick={() => {
               setCurrentFilter('ended');
               setCurrentPage(1);
@@ -163,11 +150,10 @@ export const TokenListPage: React.FC = () => {
             Ended
           </button>
           <button
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              currentFilter === 'upcoming'
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${currentFilter === 'upcoming'
                 ? 'bg-primary-600 text-white'
                 : 'bg-dark-400 text-light-300 hover:bg-dark-300'
-            }`}
+              }`}
             onClick={() => {
               setCurrentFilter('upcoming');
               setCurrentPage(1);
@@ -176,11 +162,10 @@ export const TokenListPage: React.FC = () => {
             Upcoming
           </button>
           <button
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              currentFilter === 'top-snipe'
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${currentFilter === 'top-snipe'
                 ? 'bg-primary-600 text-white'
                 : 'bg-dark-400 text-light-300 hover:bg-dark-300'
-            }`}
+              }`}
             onClick={() => {
               setCurrentFilter('top-snipe');
               setCurrentPage(1);
@@ -204,7 +189,7 @@ export const TokenListPage: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          
+
           <div className="relative w-full md:w-64">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <ArrowUpDown size={18} className="text-light-500" />
@@ -246,12 +231,12 @@ export const TokenListPage: React.FC = () => {
               <div className="col-span-2 text-right">Time Remaining</div>
               <div className="col-span-1 text-right">Actions</div>
             </div>
-            
+
             {/* Mobile Header (Only shown on mobile) */}
             <div className="md:hidden p-4 bg-dark-400 text-light-300 font-medium text-sm border-b border-dark-300">
               Tokens ({sortedProjects.length})
             </div>
-            
+
             {/* Table Body */}
             <div className="divide-y divide-dark-300">
               {sortedProjects.length === 0 ? (
@@ -267,10 +252,10 @@ export const TokenListPage: React.FC = () => {
                   const isActive = project.status === 'STARTED';
                   const isUpcoming = project.status === 'INITIALIZED';
                   const isEnded = project.status === 'FINALIZED' || project.status === 'FAILED';
-                  
+
                   return (
-                    <div 
-                      key={project.id} 
+                    <div
+                      key={project.id}
                       className="p-4 hover:bg-dark-400/40 transition-colors"
                     >
                       {/* Desktop View */}
@@ -279,9 +264,9 @@ export const TokenListPage: React.FC = () => {
                         <div className="col-span-3 flex items-center space-x-3">
                           <Link to={`/tokens/${project.id}`} className="w-10 h-10 rounded-full overflow-hidden bg-dark-300 flex-shrink-0">
                             {project.virtual.image && (
-                              <img 
-                                src={project.virtual.image.url} 
-                                alt={project.virtual.name} 
+                              <img
+                                src={project.virtual.image.url}
+                                alt={project.virtual.name}
                                 className="w-full h-full object-cover"
                               />
                             )}
@@ -293,46 +278,45 @@ export const TokenListPage: React.FC = () => {
                             <div className="text-xs text-primary-400">${project.virtual.symbol}</div>
                           </div>
                         </div>
-                        
+
                         {/* Status */}
                         <div className="col-span-1 flex justify-center">
                           <div className={`px-2 py-1 rounded-md text-xs font-medium border ${getStatusColor(project.status)}`}>
                             {getStatusIcon(project.status)}
                           </div>
                         </div>
-                        
+
                         {/* Score */}
                         <div className="col-span-1 text-center">
-                          <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${
-                            score >= 70 
-                              ? 'text-success-400 bg-success-500/10 border border-success-500/30' 
-                              : score >= 50 
-                                ? 'text-warning-400 bg-warning-500/10 border border-warning-500/30' 
+                          <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${score >= 70
+                              ? 'text-success-400 bg-success-500/10 border border-success-500/30'
+                              : score >= 50
+                                ? 'text-warning-400 bg-warning-500/10 border border-warning-500/30'
                                 : 'text-light-400 bg-light-500/10 border border-light-500/30'
-                          }`}>
+                            }`}>
                             {score}
                           </div>
                         </div>
-                        
+
                         {/* Participants */}
                         <div className="col-span-2 text-center text-light-300">
                           {project.totalParticipants.toLocaleString()}
                         </div>
-                        
+
                         {/* Total VIRTUAL */}
                         <div className="col-span-2 text-center text-light-300">
                           {project.totalVirtuals.toLocaleString()}
                         </div>
-                        
+
                         {/* Time Remaining */}
                         <div className="col-span-2 text-right text-light-300">
                           {isEnded ? 'Ended' : timeRemaining}
                         </div>
-                        
+
                         {/* Actions */}
                         <div className="col-span-1 flex justify-end space-x-2">
                           {isActive && (
-                            <button 
+                            <button
                               onClick={() => handleSnipe(project)}
                               className="p-2 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
                               title="Snipe at launch"
@@ -341,7 +325,7 @@ export const TokenListPage: React.FC = () => {
                             </button>
                           )}
                           {isUpcoming && (
-                            <button 
+                            <button
                               onClick={() => handleSubscribe(project)}
                               className="p-2 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
                               title="Subscribe"
@@ -349,7 +333,7 @@ export const TokenListPage: React.FC = () => {
                               <Clock size={16} />
                             </button>
                           )}
-                          <Link 
+                          <Link
                             to={`/tokens/${project.id}`}
                             className="p-2 rounded-full bg-dark-300 text-light-300 hover:bg-dark-200 transition-colors"
                             title="View details"
@@ -358,16 +342,16 @@ export const TokenListPage: React.FC = () => {
                           </Link>
                         </div>
                       </div>
-                      
+
                       {/* Mobile View */}
                       <div className="md:hidden">
                         <div className="flex items-center justify-between mb-3">
                           <Link to={`/tokens/${project.id}`} className="flex items-center space-x-3">
                             <div className="w-10 h-10 rounded-full overflow-hidden bg-dark-300">
                               {project.virtual.image && (
-                                <img 
-                                  src={project.virtual.image.url} 
-                                  alt={project.virtual.name} 
+                                <img
+                                  src={project.virtual.image.url}
+                                  alt={project.virtual.name}
                                   className="w-full h-full object-cover"
                                 />
                               )}
@@ -377,13 +361,13 @@ export const TokenListPage: React.FC = () => {
                               <div className="text-xs text-primary-400">${project.virtual.symbol}</div>
                             </div>
                           </Link>
-                          
+
                           <div className={`px-2 py-1 rounded-md text-xs font-medium border flex items-center space-x-1 ${getStatusColor(project.status)}`}>
                             {getStatusIcon(project.status)}
                             <span>{project.status}</span>
                           </div>
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-2 mb-3">
                           <div className="bg-dark-400/60 rounded-lg p-2 text-center">
                             <div className="text-sm font-bold text-white">{project.totalParticipants}</div>
@@ -394,26 +378,25 @@ export const TokenListPage: React.FC = () => {
                             <div className="text-xs text-light-500">Virtuals</div>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
-                            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                              score >= 70 
-                                ? 'text-success-400 bg-success-500/10 border border-success-500/30' 
-                                : score >= 50 
-                                  ? 'text-warning-400 bg-warning-500/10 border border-warning-500/30' 
+                            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${score >= 70
+                                ? 'text-success-400 bg-success-500/10 border border-success-500/30'
+                                : score >= 50
+                                  ? 'text-warning-400 bg-warning-500/10 border border-warning-500/30'
                                   : 'text-light-400 bg-light-500/10 border border-light-500/30'
-                            }`}>
+                              }`}>
                               {score}
                             </div>
                             <div className="text-xs text-light-400">
                               {isEnded ? 'Ended' : timeRemaining}
                             </div>
                           </div>
-                          
+
                           <div className="flex space-x-2">
                             {isActive && (
-                              <button 
+                              <button
                                 onClick={() => handleSnipe(project)}
                                 className="p-2 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
                               >
@@ -421,7 +404,7 @@ export const TokenListPage: React.FC = () => {
                               </button>
                             )}
                             {isUpcoming && (
-                              <button 
+                              <button
                                 onClick={() => handleSubscribe(project)}
                                 className="p-2 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
                               >
@@ -456,26 +439,25 @@ export const TokenListPage: React.FC = () => {
               >
                 <ChevronLeft size={18} />
               </button>
-              
+
               {Array.from({ length: Math.min(pagination.pageCount, 5) }).map((_, index) => {
                 let pageNumber = currentPage - 2 + index;
-                
+
                 if (currentPage < 3) {
                   pageNumber = index + 1;
                 } else if (currentPage > pagination.pageCount - 2) {
                   pageNumber = pagination.pageCount - 4 + index;
                 }
-                
+
                 if (pageNumber > 0 && pageNumber <= pagination.pageCount) {
                   return (
                     <button
                       key={pageNumber}
                       onClick={() => setCurrentPage(pageNumber)}
-                      className={`px-4 py-2 border border-dark-200 ${
-                        currentPage === pageNumber
+                      className={`px-4 py-2 border border-dark-200 ${currentPage === pageNumber
                           ? 'bg-primary-600 text-white'
                           : 'bg-dark-400 text-light-300 hover:bg-dark-300'
-                      }`}
+                        }`}
                     >
                       {pageNumber}
                     </button>
@@ -483,7 +465,7 @@ export const TokenListPage: React.FC = () => {
                 }
                 return null;
               })}
-              
+
               <button
                 className="px-3 py-2 rounded-r-md border border-dark-200 bg-dark-400 text-light-300 hover:bg-dark-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => setCurrentPage(Math.min(currentPage + 1, pagination.pageCount))}
@@ -501,18 +483,18 @@ export const TokenListPage: React.FC = () => {
 
 // Helper components
 const ChevronDown = ({ size, className }: { size: number, className?: string }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     className={className}
   >
-    <path d="m6 9 6 6 6-6"/>
+    <path d="m6 9 6 6 6-6" />
   </svg>
 ); 
