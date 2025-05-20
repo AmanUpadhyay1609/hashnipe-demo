@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useGenesis, StatusFilter, GenesisLaunch } from '../context/GenesisContext';
-import { Search, Filter, ArrowUpDown, Zap, Clock, CheckCircle, XCircle, AlertCircle, ArrowRight, ChevronRight, ChevronLeft } from 'lucide-react';
+import { useGenesis, GenesisLaunch } from '../context/GenesisContext';
+import { Search, ArrowUpDown, Zap, Clock, CheckCircle, XCircle, AlertCircle, ArrowRight, ChevronRight, ChevronLeft } from 'lucide-react';
 // import { useWallet } from '../context/WalletContext';
 import { motion } from 'framer-motion';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
 
 export const TokenListPage: React.FC = () => {

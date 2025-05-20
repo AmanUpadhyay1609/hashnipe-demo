@@ -6,7 +6,6 @@ import { Layout } from './components/layout/Layout';
 import { UserLayout } from './components/layout/UserLayout';
 import { GenesisProvider } from './context/GenesisContext';
 import { AuthProvider } from './context/AuthContext';
-import { HeroSection } from './components/sections/HeroSection';
 import { useAuth } from './context/AuthContext';
 
 // App Routes Component

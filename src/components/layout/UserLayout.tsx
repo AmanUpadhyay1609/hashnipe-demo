@@ -11,7 +11,6 @@ import {
     Search,
     Bell,
     ChevronLeft,
-    ChevronRight,
     User,
     LogOut,
     Hash,
@@ -54,7 +53,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
     ];
 
     return (
-        <div className="flex h-screen bg-dark-500">
+        <div className="flex h-screen bg-dark-500 text-xs">
             {/* Sidebar */}
             <motion.aside
                 initial={{ width: 200 }}

@@ -1,12 +1,11 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Bot, TrendingUp, Zap } from 'lucide-react';
+import {  Bot, TrendingUp, Zap } from 'lucide-react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { TelegramIcon } from '../ui/TelegramIcon';
 
 export const HeroSection: React.FC = () => {
-  const { isAuthenticated } = useAuth();
 
   const { setJwt } = useAuth();
   const navigate = useNavigate();

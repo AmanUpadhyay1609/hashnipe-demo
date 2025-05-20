@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGenesis, GenesisLaunch, StatusFilter } from '../../context/GenesisContext';
 import { ProjectCard } from '../ui/ProjectCard';
-import { Search, Filter, ArrowUpDown, Zap, Clock, CheckCircle, ChevronRight, ChevronLeft } from 'lucide-react';
+import {  Zap, Clock, CheckCircle, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const ProjectsSection: React.FC = () => {
