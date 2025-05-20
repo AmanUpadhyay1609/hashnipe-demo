@@ -9,6 +9,9 @@ interface HeaderProps {
   isMenuOpen: boolean;
   toggleMenu: () => void;
 }
+export const shortenAddress = (addr: string) => {
+  return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
+};
 
 export const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
   const [copied, setCopied] = useState(false);
@@ -16,9 +19,7 @@ export const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
     window.open('https://t.me/SideTest_Bot', '_blank');
   };
 
-  const shortenAddress = (addr: string) => {
-    return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
-  };
+ 
 
   const { isAuthenticated, decodedToken, logout } = useAuth();
   const username = decodedToken?.walletAddress || 'User';
