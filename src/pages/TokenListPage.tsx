@@ -95,107 +95,32 @@ export const TokenListPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-dark-600 py-12">
-      <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-8"
-        >
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="gradient-text">Virtuals</span> Token List
-          </h1>
-          <p className="text-light-400 max-w-3xl mx-auto">
-            Track and interact with tokens from Virtual Protocol's Genesis Launches. Use our advanced filtering to find the best opportunities.
-          </p>
-        </motion.div>
+    <div className="min-h-screen bg-dark-600 py-4">
+      <div className="container mx-auto px-1">
 
-        {/* Filter Tabs */}
-        <div className="flex flex-wrap justify-center mb-8 gap-2">
-          <button
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${currentFilter === 'all'
-                ? 'bg-primary-600 text-white'
-                : 'bg-dark-400 text-light-300 hover:bg-dark-300'
-              }`}
-            onClick={() => {
-              setCurrentFilter('all');
-              setCurrentPage(1);
-            }}
-          >
-            All Tokens
-          </button>
-          <button
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${currentFilter === 'active'
-                ? 'bg-primary-600 text-white'
-                : 'bg-dark-400 text-light-300 hover:bg-dark-300'
-              }`}
-            onClick={() => {
-              setCurrentFilter('active');
-              setCurrentPage(1);
-            }}
-          >
-            Active
-          </button>
-          <button
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${currentFilter === 'ended'
-                ? 'bg-primary-600 text-white'
-                : 'bg-dark-400 text-light-300 hover:bg-dark-300'
-              }`}
-            onClick={() => {
-              setCurrentFilter('ended');
-              setCurrentPage(1);
-            }}
-          >
-            Ended
-          </button>
-          <button
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${currentFilter === 'upcoming'
-                ? 'bg-primary-600 text-white'
-                : 'bg-dark-400 text-light-300 hover:bg-dark-300'
-              }`}
-            onClick={() => {
-              setCurrentFilter('upcoming');
-              setCurrentPage(1);
-            }}
-          >
-            Upcoming
-          </button>
-          <button
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${currentFilter === 'top-snipe'
-                ? 'bg-primary-600 text-white'
-                : 'bg-dark-400 text-light-300 hover:bg-dark-300'
-              }`}
-            onClick={() => {
-              setCurrentFilter('top-snipe');
-              setCurrentPage(1);
-            }}
-          >
-            Top Snipe Picks
-          </button>
-        </div>
-
-        {/* Search and Sort Controls */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="relative flex-grow">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={18} className="text-light-500" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search tokens..."
-              className="w-full pl-10 pr-4 py-3 rounded-lg bg-dark-400 border border-dark-200 text-light-300 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
+        {/* Combined Filter and Sort Controls */}
+        <div className="flex flex-col md:flex-row gap-4 mb-2 items-center justify-between">
+          {/* Filter Dropdown */}
           <div className="relative w-full md:w-64">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <ArrowUpDown size={18} className="text-light-500" />
-            </div>
             <select
-              className="w-full pl-10 pr-4 py-3 rounded-lg bg-dark-400 border border-dark-200 text-light-300 appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+              className="w-full p-2 rounded-lg bg-dark-400 border border-dark-200 text-light-300 appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+              value={currentFilter}
+              onChange={(e) => {
+                setCurrentFilter(e.target.value as any);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="all">All Tokens</option>
+              <option value="active">Active</option>
+              <option value="ended">Ended</option>
+              <option value="upcoming">Upcoming</option>
+              <option value="top-snipe">Top Snipe Picks</option>
+            </select>
+          </div>
+          {/* Sort Dropdown */}
+          <div className="relative w-full md:w-64">
+            <select
+              className="w-full p-2 rounded-lg bg-dark-400 border border-dark-200 text-light-300 appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500/50"
               value={sortOption}
               onChange={(e) => setSortOption(e.target.value)}
             >
@@ -481,7 +406,7 @@ export const TokenListPage: React.FC = () => {
   );
 };
 
-// Helper components
+// Helper component remains unchanged
 const ChevronDown = ({ size, className }: { size: number, className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -497,4 +422,4 @@ const ChevronDown = ({ size, className }: { size: number, className?: string }) 
   >
     <path d="m6 9 6 6 6-6" />
   </svg>
-); 
+);

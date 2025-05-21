@@ -4,23 +4,23 @@
 
 @layer base {
   body {
-    @apply bg-dark-400 text-light-300 font-sans;
+    @apply bg-dark-400 text-light-300 font-sans text-xs;
   }
 
   h1 {
-    @apply text-3xl font-bold md:text-4xl lg:text-5xl;
+    @apply text-2xl font-medium md:text-3xl lg:text-4xl;
   }
 
   h2 {
-    @apply text-2xl font-bold md:text-3xl;
+    @apply text-xl font-medium md:text-2xl;
   }
 
   h3 {
-    @apply text-xl font-bold md:text-2xl;
+    @apply text-lg font-medium md:text-xl;
   }
 
   h4 {
-    @apply text-lg font-bold md:text-xl;
+    @apply text-base font-medium md:text-lg;
   }
 }
 

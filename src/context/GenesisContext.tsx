@@ -93,7 +93,7 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
   const [currentFilter, setCurrentFilter] = useState<StatusFilter>('active');
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  
+
   // Filtered lists
   const [activeProjects, setActiveProjects] = useState<GenesisLaunch[]>([]);
   const [endedProjects, setEndedProjects] = useState<GenesisLaunch[]>([]);
@@ -104,10 +104,10 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
 
   const fetchGenesisLaunches = async (page: number = 1, filter: StatusFilter = currentFilter) => {
     setLoading(true);
-    
+
     try {
       let url = `${baseUrl}?pagination[page]=${page}&pagination[pageSize]=12&filters[virtual][priority][$ne]=-1`;
-      
+
       // Build query based on filter
       if (filter === 'active') {
         url += '&filters[status][$in][0]=STARTED&sort=startsAt:asc';
@@ -118,13 +118,13 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
       } else if (filter === 'all') {
         url += '&sort=updatedAt:desc';
       }
-      
+
       const response = await axios.get<GenesisResponse>(url);
-      
+
       setGenesisLaunches(response.data.data);
       setPagination(response.data.meta.pagination);
       setLoading(false);
-      
+
       // Update the current filter
       setCurrentFilter(filter);
     } catch (err) {
@@ -133,7 +133,7 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
       console.error('Error fetching genesis launches:', err);
     }
   };
-  
+
   // Fetch all data categories for the homepage 
   const fetchAllCategories = async () => {
     try {
@@ -142,23 +142,23 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
         `${baseUrl}?pagination[page]=1&pagination[pageSize]=6&filters[virtual][priority][$ne]=-1&filters[status][$in][0]=STARTED&sort=startsAt:asc`
       );
       setActiveProjects(activeResponse.data.data);
-      
+
       // Ended projects (FINALIZED, FAILED)
       const endedResponse = await axios.get<GenesisResponse>(
         `${baseUrl}?pagination[page]=1&pagination[pageSize]=6&filters[virtual][priority][$ne]=-1&filters[status][$in][0]=FAILED&filters[status][$in][1]=FINALIZED&sort=updatedAt:desc`
       );
       setEndedProjects(endedResponse.data.data);
-      
+
       // Upcoming projects (INITIALIZED)
       const upcomingResponse = await axios.get<GenesisResponse>(
         `${baseUrl}?pagination[page]=1&pagination[pageSize]=6&filters[virtual][priority][$ne]=-1&filters[status][$in][0]=INITIALIZED&sort=startsAt:asc`
       );
       setUpcomingProjects(upcomingResponse.data.data);
-      
+
       // Initially set the main list to active projects
       setGenesisLaunches(activeResponse.data.data);
       setPagination(activeResponse.data.meta.pagination);
-      
+
       setLoading(false);
     } catch (err) {
       setError('Failed to fetch genesis launches');
@@ -170,13 +170,13 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
   useEffect(() => {
     // Fetch data for the homepage
     fetchAllCategories();
-    
+
     // Set up polling every 30 seconds - note we increased interval to reduce API load
     const interval = setInterval(fetchAllCategories, 30000);
-    
+
     return () => clearInterval(interval);
   }, []);
-  
+
   // Calculate top snipe picks whenever active projects update
   useEffect(() => {
     // Top snipe picks - projects with highest score
@@ -185,34 +185,34 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
       const scoreB = getProjectScore(b);
       return scoreB - scoreA;
     }).slice(0, 6);
-    
+
     setTopSnipeProjects(topPicks);
   }, [activeProjects]);
 
   const getProjectScore = (project: GenesisLaunch): number => {
     let score = 0;
-    
+
     // Factor 1: Participant engagement (0-30 points)
     const participantScore = Math.min(project.totalParticipants / 10, 30);
     score += participantScore;
-    
+
     // Factor 2: Funding progress (0-30 points)
     const fundingProgress = (project.totalVirtuals / 112000) * 100;
     const fundingScore = Math.min(fundingProgress / 3.33, 30);
     score += fundingScore;
-    
+
     // Factor 3: Point commitment (0-20 points)
-    const avgPointsPerParticipant = project.totalParticipants > 0 
-      ? project.totalPoints / project.totalParticipants 
+    const avgPointsPerParticipant = project.totalParticipants > 0
+      ? project.totalPoints / project.totalParticipants
       : 0;
     const pointScore = Math.min(avgPointsPerParticipant / 100, 20);
     score += pointScore;
-    
+
     // Factor 4: Time remaining factor (0-20 points)
     const now = new Date();
     const endsAt = new Date(project.endsAt);
     const hoursRemaining = Math.max(0, (endsAt.getTime() - now.getTime()) / (1000 * 60 * 60));
-    
+
     let timeScore = 0;
     if (hoursRemaining >= 12 && hoursRemaining <= 24) {
       timeScore = 20;
@@ -222,7 +222,7 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
       timeScore = Math.max(0, 20 - ((hoursRemaining - 24) / 12) * 10);
     }
     score += timeScore;
-    
+
     return Math.round(score);
   };
 
@@ -237,10 +237,10 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
   };
 
   return (
-    <GenesisContext.Provider 
-      value={{ 
-        genesisLaunches, 
-        loading, 
+    <GenesisContext.Provider
+      value={{
+        genesisLaunches,
+        loading,
         error,
         getProjectScore,
         isRecommendedToSnipe,

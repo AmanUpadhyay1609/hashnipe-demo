@@ -26,12 +26,13 @@ interface UserLayoutProps {
 export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
     const { decodedToken, logout } = useAuth();
     const location = useLocation();
     const [copied, setCopied] = useState(false);
 
-
     const username = decodedToken?.walletAddress || 'User';
+    console.log("walletAddress", decodedToken)
 
     const handleCopyUsername = async () => {
         try {
@@ -43,6 +44,9 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
         }
     };
 
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+    };
 
     const navItems = [
         { path: '/', icon: Home, label: 'Dashboard' },
@@ -65,7 +69,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                         {!isSidebarCollapsed && (<>
                             <Hash size={28} className="text-primary-400" />
                             <div className="flex flex-col">
-                                <span className="text-xl font-bold">
+                                <span className="text-base font-medium">
                                     <span className="text-primary-400">Ha</span>
                                     <span className="text-white">Shnipe</span>
                                 </span>
@@ -99,7 +103,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                                         }`}
                                 >
                                     <Icon size={18} />
-                                    {!isSidebarCollapsed && <span>{item.label}</span>}
+                                    {!isSidebarCollapsed && <span className="text-xs font-normal">{item.label}</span>}
                                 </Link>
                             );
                         })}
@@ -112,7 +116,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                         className="flex items-center space-x-3 px-4 py-3 rounded-lg text-light-400 hover:bg-dark-300 hover:text-white transition-colors w-full"
                     >
                         <LogOut size={20} />
-                        {!isSidebarCollapsed && <span>Logout</span>}
+                        {!isSidebarCollapsed && <span className="text-xs font-normal">Logout</span>}
                     </button>
                 </div>
             </motion.aside>
@@ -133,6 +137,8 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                                 className="w-full bg-dark-300 text-white pl-10 pr-4 py-2 rounded-lg focus:outline-none"
                                 onFocus={() => setIsSearchFocused(true)}
                                 onBlur={() => setIsSearchFocused(false)}
+                                value={searchTerm}
+                                onChange={handleSearch}
                             />
                         </div>
                     </div>
@@ -149,7 +155,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                                 className="flex items-center space-x-2 bg-dark-300 px-3 py-1 rounded-lg hover:bg-dark-200 transition-colors group"
                             >
                                 <User size={16} className="text-light-400" />
-                                <span className="text-light-300">{shortenAddress(username)}</span>
+                                <span className="text-light-300 text-xs font-normal">{shortenAddress(username)}</span>
                                 {copied ? (
                                     <Check size={14} className="text-success-400" />
                                 ) : (
@@ -161,7 +167,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                 </header>
 
                 {/* Main Content Area */}
-                <main className="flex-1 overflow-auto p-6">
+                <main className="flex-1 overflow-auto p-0">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -173,12 +179,12 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
 
                 {/* Footer */}
                 <footer className="h-12 bg-dark-400 border-t border-dark-100 px-6 flex items-center justify-between">
-                    <span className="text-light-500 text-sm">© 2024 Hashnipe. All rights reserved.</span>
+                    <span className="text-light-500 text-xs">© 2024 Hashnipe. All rights reserved.</span>
                     <div className="flex items-center space-x-4">
-                        <a href="#" className="text-light-500 hover:text-primary-400 text-sm transition-colors">
+                        <a href="#" className="text-light-500 hover:text-primary-400 text-xs transition-colors">
                             Privacy Policy
                         </a>
-                        <a href="#" className="text-light-500 hover:text-primary-400 text-sm transition-colors">
+                        <a href="#" className="text-light-500 hover:text-primary-400 text-xs transition-colors">
                             Terms of Service
                         </a>
                     </div>
