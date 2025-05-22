@@ -167,8 +167,8 @@ export const TokenListPage: React.FC = () => {
 
   const [selectedProject, setSelectedProject] = useState<GenesisLaunch | null>(null);
   const [isSnipeFormOpen, setIsSnipeFormOpen] = useState(false);
-  const [hoveredTokenomicsIdx, setHoveredTokenomicsIdx] = useState<number|null>(null);
-  const tokenomicsAnchorRefs = useRef<(HTMLDivElement|null)[]>([]);
+  const [hoveredTokenomicsIdx, setHoveredTokenomicsIdx] = useState<number | null>(null);
+  const tokenomicsAnchorRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [searchTerm] = useState<string>('');
   const [sortOption, setSortOption] = useState<string>('score');
   const [selectedTradeProject, setSelectedTradeProject] = useState<GenesisLaunch | null>(null);
@@ -210,7 +210,7 @@ export const TokenListPage: React.FC = () => {
       }
       return 0;
     });
-    console.log("sortedProjects-->", sortedProjects)
+  console.log("sortedProjects-->", sortedProjects)
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -264,6 +264,9 @@ export const TokenListPage: React.FC = () => {
     setIsSnipeFormOpen(false);
   };
 
+  const handleSubscribe = async (project: GenesisLaunch) => {
+    console.log("Subscribe")
+  }
   const handleTradeClose = () => {
     setIsTradeFormOpen(false);
     setSelectedTradeProject(null);
@@ -316,28 +319,28 @@ export const TokenListPage: React.FC = () => {
               </div>
             </div>
 
-        {/* Token List */}
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
-          </div>
-        ) : error ? (
-          <div className="text-center text-error-500 p-8 bg-error-500/10 rounded-xl">
-            {error}
-          </div>
-        ) : (
-          <div className="bg-dark-500 rounded-2xl overflow-x-auto overflow-y-hidden border border-dark-300">
-            {/* Table Header */}
-            <div className="hidden md:grid grid-cols-10 gap-2 p-3 bg-dark-400 text-light-300 font-medium text-sm border-b border-dark-300 items-center">
-              <div className="col-span-2">Token</div>
-              <div className="col-span-1 text-center">Status</div>
-              <div className="col-span-1 text-center">Score</div>
-              <div className="col-span-1 text-center">Participants</div>
-              <div className="col-span-1 text-center">Total VIRTUAL</div>
-              <div className="col-span-1 text-center">Tokenomics</div>
-              <div className="col-span-2 text-right">Time Remaining</div>
-              <div className="col-span-1 text-right">Actions</div>
-            </div>
+            {/* Token List */}
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+              </div>
+            ) : error ? (
+              <div className="text-center text-error-500 p-8 bg-error-500/10 rounded-xl">
+                {error}
+              </div>
+            ) : (
+              <div className="bg-dark-500 rounded-2xl overflow-x-auto overflow-y-hidden border border-dark-300">
+                {/* Table Header */}
+                <div className="hidden md:grid grid-cols-10 gap-2 p-3 bg-dark-400 text-light-300 font-medium text-sm border-b border-dark-300 items-center">
+                  <div className="col-span-3">Token</div>
+                  <div className="col-span-1 text-center">Status</div>
+                  <div className="col-span-1 text-center">Score</div>
+                  <div className="col-span-1 text-center">Participants</div>
+                  <div className="col-span-1 text-center">Total VIRTUAL</div>
+                  <div className="col-span-1 text-center">Tokenomics</div>
+                  <div className="col-span-1 text-right">Time</div>
+                  <div className="col-span-1 text-right">Actions</div>
+                </div>
 
                 {/* Mobile Header (Only shown on mobile) */}
                 <div className="md:hidden p-4 bg-dark-400 text-light-300 font-medium text-sm border-b border-dark-300">
@@ -349,11 +352,9 @@ export const TokenListPage: React.FC = () => {
                   {sortedProjects.length === 0 ? (
                     <div className="p-6 text-center text-light-400">
                       No tokens found matching your criteria
-
                     </div>
                   ) : (
                     sortedProjects.map((project) => {
-
                       const score = getProjectScore(project);
                       const endDate = new Date(project.endsAt);
                       const timeRemaining = formatDistanceToNow(endDate, { addSuffix: true });
@@ -367,7 +368,7 @@ export const TokenListPage: React.FC = () => {
                           className="p-4 hover:bg-dark-400/40 transition-colors"
                         >
                           {/* Desktop View */}
-                          <div className="hidden md:grid grid-cols-12 gap-4 items-center">
+                          <div className="hidden md:grid grid-cols-10 gap-2 items-center">
                             {/* Token */}
                             <div className="col-span-3 flex items-center space-x-3">
                               <Link to={`/tokens/${project.id}`} className="w-10 h-10 rounded-full overflow-hidden bg-dark-300 flex-shrink-0">
@@ -406,12 +407,8 @@ export const TokenListPage: React.FC = () => {
                               </div>
                             </div>
 
-                        {/* Participants */}
-                        <div className="col-span-1 text-center text-light-300">
-                          {project.totalParticipants.toLocaleString()}
-                        </div>
                             {/* Participants */}
-                            <div className="col-span-2 text-center text-light-300">
+                            <div className="col-span-1 text-center text-light-300">
                               {project.totalParticipants.toLocaleString()}
                             </div>
 
@@ -420,30 +417,30 @@ export const TokenListPage: React.FC = () => {
                               {project.totalVirtuals.toLocaleString()}
                             </div>
 
-                        {/* Tokenomics Pie Chart */}
-                        <div
-                          className="col-span-1 flex justify-center items-center relative min-w-[48px] h-8"
-                          ref={el => tokenomicsAnchorRefs.current[sortedProjects.indexOf(project)] = el}
-                          onMouseEnter={() => setHoveredTokenomicsIdx(sortedProjects.indexOf(project))}
-                          onMouseLeave={() => setHoveredTokenomicsIdx(null)}
-                          style={{ minWidth: 48, height: 32 }}
-                        >
-                          <TokenomicsPieChart tokenomics={project.virtual.tokenomics ?? []} />
-                          {hoveredTokenomicsIdx === sortedProjects.indexOf(project) && (
-                            <TokenomicsPieChartPopup
-                              virtualId={project.virtual.id}
-                              onClose={() => setHoveredTokenomicsIdx(null)}
-                            />
-                          )}
-                        </div>
+                            {/* Tokenomics */}
+                            <div
+                              className="col-span-1 flex justify-center items-center relative min-w-[48px] h-8"
+                              ref={el => tokenomicsAnchorRefs.current[sortedProjects.indexOf(project)] = el}
+                              onMouseEnter={() => setHoveredTokenomicsIdx(sortedProjects.indexOf(project))}
+                              onMouseLeave={() => setHoveredTokenomicsIdx(null)}
+                              style={{ minWidth: 48, height: 32 }}
+                            >
+                              <TokenomicsPieChart tokenomics={project.virtual.tokenomics ?? []} />
+                              {hoveredTokenomicsIdx === sortedProjects.indexOf(project) && (
+                                <TokenomicsPieChartPopup
+                                  virtualId={project.virtual.id}
+                                  onClose={() => setHoveredTokenomicsIdx(null)}
+                                />
+                              )}
+                            </div>
 
                             {/* Time Remaining */}
-                            <div className="col-span-2 text-right text-light-300">
+                            <div className="col-span-1 text-right text-light-300">
                               {isEnded ? 'Ended' : timeRemaining}
                             </div>
 
                             {/* Actions */}
-                            <div className="col-span-1 flex justify-end items-center space-x-1 flex-nowrap min-w-[100px]">
+                            <div className="col-span-1 flex justify-end items-center space-x-1">
                               {isActive && (
                                 <button
                                   onClick={() => handleSnipe(project)}
@@ -455,7 +452,7 @@ export const TokenListPage: React.FC = () => {
                               )}
                               {isUpcoming && (
                                 <button
-                                  onClick={() => handleSnipe(project)}
+                                  onClick={() => handleSubscribe(project)}
                                   className="p-1.5 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
                                   title="Subscribe"
                                 >
@@ -465,7 +462,7 @@ export const TokenListPage: React.FC = () => {
                               {project.status === 'FINALIZED' && (
                                 <button
                                   onClick={() => handleTrade(project)}
-                                  className="p-2 rounded-full bg-success-500 text-white hover:bg-success-600 transition-colors"
+                                  className="p-1.5 rounded-full bg-success-500 text-white hover:bg-success-600 transition-colors"
                                   title="Trade on Base"
                                 >
                                   <DollarSign size={16} />
@@ -565,23 +562,7 @@ export const TokenListPage: React.FC = () => {
                                 </Link>
                               </div>
                             </div>
-    
-                        {/* Tokenomics Pie Chart */}
-                        <div
-                          className="flex items-center justify-center relative mt-2"
-                          ref={el => tokenomicsAnchorRefs.current[sortedProjects.indexOf(project)] = el}
-                          onMouseEnter={() => setHoveredTokenomicsIdx(sortedProjects.indexOf(project))}
-                          onMouseLeave={() => setHoveredTokenomicsIdx(null)}
-                        >
-                          <TokenomicsPieChart tokenomics={project.virtual.tokenomics ?? []} />
-                          {hoveredTokenomicsIdx === sortedProjects.indexOf(project) && (
-                            <TokenomicsPieChartPopup
-                              virtualId={project.virtual.id}
-                              onClose={() => setHoveredTokenomicsIdx(null)}
-                            />
-                          )}
-                        </div>
-                      </div>
+                          </div>
                         </div>
                       );
                     })
