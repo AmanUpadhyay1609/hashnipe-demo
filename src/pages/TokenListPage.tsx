@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useGenesis, GenesisLaunch } from '../context/GenesisContext';
-import { Search, ArrowUpDown, Zap, Clock, CheckCircle, XCircle, AlertCircle, ArrowRight, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Search, ArrowUpDown, Zap, Clock, CheckCircle, XCircle, AlertCircle, ArrowRight, ChevronRight, ChevronLeft, DollarSign } from 'lucide-react';
 // import { useWallet } from '../context/WalletContext';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { SnipeForm } from '../components/SnipeForm';
 import { SwapForm } from '../components/SwapForm';
+import { BuySellForm } from '../components/BuySellForm';
 
 export const TokenListPage: React.FC = () => {
   const {
@@ -30,6 +31,16 @@ export const TokenListPage: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<GenesisLaunch | null>(null);
   const [isSnipeFormOpen, setIsSnipeFormOpen] = useState(false);
   const [isSwapFormOpen, setIsSwapFormOpen] = useState(true);
+  const [selectedTradeProject, setSelectedTradeProject] = useState<GenesisLaunch | null>(null);
+  const [isTradeFormOpen, setIsTradeFormOpen] = useState(false);
+
+  const filterOptions = [
+    { value: 'all', label: 'All Tokens' },
+    { value: 'active', label: 'Active' },
+    { value: 'ended', label: 'Ended' },
+    { value: 'upcoming', label: 'Upcoming' },
+    { value: 'top-snipe', label: 'Top Snipe' }
+  ];
 
   // Fetch data when page changes
   useEffect(() => {
@@ -108,6 +119,18 @@ export const TokenListPage: React.FC = () => {
     console.log('Subscribing to project:', project.virtual.name);
   };
 
+  const handleTrade = async (project: GenesisLaunch) => {
+    setSelectedTradeProject(project);
+    setIsTradeFormOpen(true);
+    setIsSwapFormOpen(false);
+  };
+
+  const handleTradeClose = () => {
+    setIsTradeFormOpen(false);
+    setSelectedTradeProject(null);
+    setIsSwapFormOpen(true);
+  };
+
   return (
     <div className="min-h-screen py-4">
       <div className="container mx-auto px-1">
@@ -116,23 +139,30 @@ export const TokenListPage: React.FC = () => {
           <div className="flex-1">
             {/* Combined Filter and Sort Controls */}
             <div className="flex flex-col md:flex-row gap-4 mb-2 items-center justify-between">
-              {/* Filter Dropdown */}
-              <div className="relative w-full md:w-64">
-                <select
-                  className="w-full p-2 rounded-lg bg-dark-400 border border-dark-200 text-light-300 appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500/50"
-                  value={currentFilter}
-                  onChange={(e) => {
-                    setCurrentFilter(e.target.value as any || "all");
-                    setCurrentPage(1);
-                  }}
-                >
-                  <option value="all">All Tokens</option>
-                  <option value="active">Active</option>
-                  <option value="ended">Ended</option>
-                  <option value="upcoming">Upcoming</option>
-                  <option value="top-snipe">Top Snipe Picks</option>
-                </select>
+              {/* Filter Toggle Buttons */}
+              <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                {filterOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      setCurrentFilter(option.value as any);
+                      setCurrentPage(1);
+                      setSelectedProject(null);
+                      setSelectedTradeProject(null);
+                      setIsSnipeFormOpen(false);
+                      setIsTradeFormOpen(false);
+                    }}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+                      ${currentFilter === option.value
+                        ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20'
+                        : 'bg-dark-400 text-light-300 hover:bg-dark-300 border border-dark-200'
+                      }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
               </div>
+
               {/* Sort Dropdown */}
               <div className="relative w-full md:w-64">
                 <select
@@ -276,6 +306,15 @@ export const TokenListPage: React.FC = () => {
                                   <Clock size={16} />
                                 </button>
                               )}
+                              {project.status === 'FINALIZED' && (
+                                <button
+                                  onClick={() => handleTrade(project)}
+                                  className="p-2 rounded-full bg-success-500 text-white hover:bg-success-600 transition-colors"
+                                  title="Trade on Base"
+                                >
+                                  <DollarSign size={16} />
+                                </button>
+                              )}
                               <Link
                                 to={`/tokens/${project.id}`}
                                 className="p-2 rounded-full bg-dark-300 text-light-300 hover:bg-dark-200 transition-colors"
@@ -354,6 +393,14 @@ export const TokenListPage: React.FC = () => {
                                     <Clock size={16} />
                                   </button>
                                 )}
+                                {project.status === 'FINALIZED' && (
+                                  <button
+                                    onClick={() => handleTrade(project)}
+                                    className="p-2 rounded-full bg-success-500 text-white hover:bg-success-600 transition-colors"
+                                  >
+                                    <DollarSign size={16} />
+                                  </button>
+                                )}
                                 <Link
                                   to={`/tokens/${project.id}`}
                                   className="p-2 rounded-full bg-dark-300 text-light-300 hover:bg-dark-200 transition-colors"
@@ -421,28 +468,33 @@ export const TokenListPage: React.FC = () => {
             )}
           </div>
 
-          {/* Swap Form Section */}
-          <div className="w-full lg:w-96 lg:sticky lg:top-6 self-start">
-            <SwapForm
-              isOpen={isSwapFormOpen}
-              onClose={() => setIsSwapFormOpen(false)}
+
+          {selectedProject && (<div className="w-full lg:w-96 lg:sticky lg:top-6 self-start">
+            <SnipeForm
+              project={selectedProject}
+              isOpen={isSnipeFormOpen}
+              onClose={() => {
+                setIsSnipeFormOpen(false);
+                setSelectedProject(null);
+              }}
+              onSnipe={handleSnipeSubmit}
             />
-          </div>
+          </div>)}
+
+          {selectedTradeProject && (
+            <div className="w-full lg:w-96 lg:sticky lg:top-6 self-start">
+              <BuySellForm
+                project={selectedTradeProject}
+                isOpen={isTradeFormOpen}
+                onClose={handleTradeClose}
+              />
+            </div>
+          )}
+
+
         </div>
       </div>
 
-      {/* Add SnipeForm */}
-      {selectedProject && (
-        <SnipeForm
-          project={selectedProject}
-          isOpen={isSnipeFormOpen}
-          onClose={() => {
-            setIsSnipeFormOpen(false);
-            setSelectedProject(null);
-          }}
-          onSnipe={handleSnipeSubmit}
-        />
-      )}
     </div>
   );
 };
