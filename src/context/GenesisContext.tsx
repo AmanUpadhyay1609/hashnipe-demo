@@ -1,6 +1,24 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import axios, { AxiosError } from 'axios';
 
+export interface TokenomicsRelease {
+  id: number;
+  type: string;
+  duration: number | null;
+  startsAt: string;
+  bips: number;
+  durationUnit: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Tokenomics {
+  id: number;
+  bips: number;
+  isLocked: boolean;
+  releases: TokenomicsRelease[];
+}
+
 export interface Virtual {
   id: number;
   chain: string;
@@ -16,6 +34,7 @@ export interface Virtual {
   category?: string;
   status?: string;
   role?: string;
+  tokenomics?: Tokenomics[];
 }
 
 export interface GenesisLaunch {

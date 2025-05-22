@@ -1,11 +1,152 @@
-import React, { useEffect, useState } from 'react';
-import { useGenesis, GenesisLaunch } from '../context/GenesisContext';
-import { Search, ArrowUpDown, Zap, Clock, CheckCircle, XCircle, AlertCircle, ArrowRight, ChevronRight, ChevronLeft } from 'lucide-react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useGenesis, GenesisLaunch, StatusFilter } from '../context/GenesisContext';
+import { Zap, Clock, CheckCircle, XCircle, AlertCircle, ArrowRight, ChevronRight, ChevronLeft } from 'lucide-react';
 // import { useWallet } from '../context/WalletContext';
-import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { SnipeForm } from '../components/SnipeForm';
+import { PieChart, Pie, Cell, Tooltip } from 'recharts';
+import type { TooltipProps } from 'recharts';
+
+// Helper for pie chart colors
+const PIE_COLORS = [
+  '#0ea5e9', '#14b8a6', '#f59e0b', '#ef4444', '#a78bfa', '#f472b6', '#34d399', '#f87171', '#38bdf8', '#fbbf24', '#6366f1', '#eab308'
+];
+
+// Tokenomics PieChart component
+const TokenomicsPieChart = ({ tokenomics }) => {
+  // Each tokenomics item is a slice, label by id or type
+  const data = tokenomics.map((t) => ({
+    name: t.releases[0]?.type || `#${t.id}`,
+    value: t.bips,
+    isLocked: t.isLocked,
+    release: t.releases[0],
+    id: t.id
+  }));
+  return (
+    <PieChart width={32} height={32}>
+      <Pie
+        data={data}
+        dataKey="value"
+        nameKey="name"
+        cx="50%"
+        cy="50%"
+        outerRadius={16}
+        innerRadius={8}
+        paddingAngle={2}
+        stroke="#22223b"
+        strokeWidth={1}
+      >
+        {data.map((entry, idx) => (
+          <Cell key={`cell-${idx}`} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
+        ))}
+      </Pie>
+    </PieChart>
+  );
+};
+
+const tokenomicsCache = {};
+const TokenomicsPieChartPopup = ({ virtualId, onClose }) => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchTokenomics = useCallback(async () => {
+    if (tokenomicsCache[virtualId]) {
+      setData(tokenomicsCache[virtualId]);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`https://api.virtuals.io/api/virtuals/${virtualId}/tokenomics`);
+      if (!res.ok) throw new Error('Failed to fetch tokenomics');
+      const json = await res.json();
+      tokenomicsCache[virtualId] = json.data;
+      setData(json.data);
+    } catch {
+      setError('Failed to load tokenomics');
+    } finally {
+      setLoading(false);
+    }
+  }, [virtualId]);
+
+  useEffect(() => {
+    fetchTokenomics();
+  }, [fetchTokenomics]);
+
+  // Prepare data for recharts
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const chartData = (data || []).map((t: any) => ({
+    name: t.name,
+    value: Number(t.bips),
+    isLocked: t.isLocked,
+    description: t.description,
+    id: t.id
+  }));
+  const total = chartData.reduce((sum, d) => sum + d.value, 0);
+
+  // Custom tooltip for recharts
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const CustomTooltip = (props: TooltipProps<any, any>) => {
+    const { active, payload } = props;
+    if (active && payload && payload.length) {
+      const d = payload[0].payload;
+      return (
+        <div className="bg-dark-300 border border-dark-100 rounded-lg px-3 py-2 text-xs text-white shadow-lg">
+          <div className="font-bold mb-1">{d.name}{d.isLocked && ' 🔒'}</div>
+          <div>{d.description}</div>
+          <div className="mt-1 text-primary-400 font-semibold">{((d.value / total) * 100).toFixed(1)}%</div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black bg-opacity-10 cursor-pointer"
+        onClick={onClose}
+      />
+      {/* Chart Popup */}
+      <div
+        className="relative bg-dark-400 border border-dark-200 rounded-lg shadow-lg p-4 flex items-center justify-center min-w-[380px] min-h-[380px]"
+        onMouseLeave={onClose}
+        onClick={e => e.stopPropagation()}
+      >
+        {loading ? (
+          <div className="flex items-center justify-center w-[360px] h-[360px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+          </div>
+        ) : error ? (
+          <div className="text-error-500 p-4">{error}</div>
+        ) : (
+          <PieChart width={360} height={360}>
+            <Pie
+              data={chartData}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              outerRadius={160}
+              innerRadius={80}
+              paddingAngle={2}
+              stroke="#22223b"
+              strokeWidth={2}
+            >
+              {chartData.map((_, idx) => (
+                <Cell key={`cell-popup-${idx}`} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip content={CustomTooltip} />
+          </PieChart>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export const TokenListPage: React.FC = () => {
   const {
@@ -13,7 +154,6 @@ export const TokenListPage: React.FC = () => {
     loading,
     error,
     getProjectScore,
-    isRecommendedToSnipe,
     currentFilter,
     setCurrentFilter,
     pagination,
@@ -24,10 +164,12 @@ export const TokenListPage: React.FC = () => {
 
   // const { address, connect, isConnecting } = useWallet();
 
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [sortOption, setSortOption] = useState<string>('score');
   const [selectedProject, setSelectedProject] = useState<GenesisLaunch | null>(null);
   const [isSnipeFormOpen, setIsSnipeFormOpen] = useState(false);
+  const [hoveredTokenomicsIdx, setHoveredTokenomicsIdx] = useState<number|null>(null);
+  const tokenomicsAnchorRefs = useRef<(HTMLDivElement|null)[]>([]);
+  const [searchTerm] = useState<string>('');
+  const [sortOption, setSortOption] = useState<string>('score');
 
   // Fetch data when page changes
   useEffect(() => {
@@ -57,6 +199,7 @@ export const TokenListPage: React.FC = () => {
       }
       return 0;
     });
+    console.log("sortedProjects-->", sortedProjects)
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -111,14 +254,14 @@ export const TokenListPage: React.FC = () => {
       <div className="container mx-auto px-1">
 
         {/* Combined Filter and Sort Controls */}
-        <div className="flex flex-col md:flex-row gap-4 mb-2 items-center justify-between">
+        <div className="flex flex-row gap-4 mb-2 items-center justify-between">
           {/* Filter Dropdown */}
           <div className="relative w-full md:w-64">
             <select
               className="w-full p-2 rounded-lg bg-dark-400 border border-dark-200 text-light-300 appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500/50"
               value={currentFilter}
               onChange={(e) => {
-                setCurrentFilter(e.target.value as any || "all");
+                setCurrentFilter(e.target.value as StatusFilter || "all");
                 setCurrentPage(1);
               }}
             >
@@ -157,14 +300,15 @@ export const TokenListPage: React.FC = () => {
             {error}
           </div>
         ) : (
-          <div className="bg-dark-500 rounded-2xl overflow-hidden border border-dark-300">
+          <div className="bg-dark-500 rounded-2xl overflow-x-auto overflow-y-hidden border border-dark-300">
             {/* Table Header */}
-            <div className="hidden md:grid grid-cols-12 gap-4 p-4 bg-dark-400 text-light-300 font-medium text-sm border-b border-dark-300">
-              <div className="col-span-3">Token</div>
+            <div className="hidden md:grid grid-cols-10 gap-2 p-3 bg-dark-400 text-light-300 font-medium text-sm border-b border-dark-300 items-center">
+              <div className="col-span-2">Token</div>
               <div className="col-span-1 text-center">Status</div>
               <div className="col-span-1 text-center">Score</div>
-              <div className="col-span-2 text-center">Participants</div>
-              <div className="col-span-2 text-center">Total VIRTUAL</div>
+              <div className="col-span-1 text-center">Participants</div>
+              <div className="col-span-1 text-center">Total VIRTUAL</div>
+              <div className="col-span-1 text-center">Tokenomics</div>
               <div className="col-span-2 text-right">Time Remaining</div>
               <div className="col-span-1 text-right">Actions</div>
             </div>
@@ -185,7 +329,6 @@ export const TokenListPage: React.FC = () => {
                 sortedProjects.map((project) => {
 
                   const score = getProjectScore(project);
-                  const recommended = isRecommendedToSnipe(project);
                   const endDate = new Date(project.endsAt);
                   const timeRemaining = formatDistanceToNow(endDate, { addSuffix: true });
                   const isActive = project.status === 'STARTED';
@@ -198,9 +341,9 @@ export const TokenListPage: React.FC = () => {
                       className="p-4 hover:bg-dark-400/40 transition-colors"
                     >
                       {/* Desktop View */}
-                      <div className="hidden md:grid grid-cols-12 gap-4 items-center">
+                      <div className="hidden md:grid grid-cols-10 gap-2 items-center min-h-[56px]">
                         {/* Token */}
-                        <div className="col-span-3 flex items-center space-x-3">
+                        <div className="col-span-2 flex items-center space-x-3">
                           <Link to={`/tokens/${project.id}`} className="w-10 h-10 rounded-full overflow-hidden bg-dark-300 flex-shrink-0">
                             {project.virtual.image && (
                               <img
@@ -238,13 +381,30 @@ export const TokenListPage: React.FC = () => {
                         </div>
 
                         {/* Participants */}
-                        <div className="col-span-2 text-center text-light-300">
+                        <div className="col-span-1 text-center text-light-300">
                           {project.totalParticipants.toLocaleString()}
                         </div>
 
                         {/* Total VIRTUAL */}
-                        <div className="col-span-2 text-center text-light-300">
+                        <div className="col-span-1 text-center text-light-300">
                           {project.totalVirtuals.toLocaleString()}
+                        </div>
+
+                        {/* Tokenomics Pie Chart */}
+                        <div
+                          className="col-span-1 flex justify-center items-center relative min-w-[48px] h-8"
+                          ref={el => tokenomicsAnchorRefs.current[sortedProjects.indexOf(project)] = el}
+                          onMouseEnter={() => setHoveredTokenomicsIdx(sortedProjects.indexOf(project))}
+                          onMouseLeave={() => setHoveredTokenomicsIdx(null)}
+                          style={{ minWidth: 48, height: 32 }}
+                        >
+                          <TokenomicsPieChart tokenomics={project.virtual.tokenomics ?? []} />
+                          {hoveredTokenomicsIdx === sortedProjects.indexOf(project) && (
+                            <TokenomicsPieChartPopup
+                              virtualId={project.virtual.id}
+                              onClose={() => setHoveredTokenomicsIdx(null)}
+                            />
+                          )}
                         </div>
 
                         {/* Time Remaining */}
@@ -253,11 +413,11 @@ export const TokenListPage: React.FC = () => {
                         </div>
 
                         {/* Actions */}
-                        <div className="col-span-1 flex justify-end space-x-2">
+                        <div className="col-span-1 flex justify-end items-center space-x-1 flex-nowrap min-w-[100px]">
                           {isActive && (
                             <button
                               onClick={() => handleSnipe(project)}
-                              className="p-2 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+                              className="p-1.5 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
                               title="Snipe at launch"
                             >
                               <Zap size={16} />
@@ -266,7 +426,7 @@ export const TokenListPage: React.FC = () => {
                           {isUpcoming && (
                             <button
                               onClick={() => handleSubscribe(project)}
-                              className="p-2 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
+                              className="p-1.5 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
                               title="Subscribe"
                             >
                               <Clock size={16} />
@@ -274,7 +434,7 @@ export const TokenListPage: React.FC = () => {
                           )}
                           <Link
                             to={`/tokens/${project.id}`}
-                            className="p-2 rounded-full bg-dark-300 text-light-300 hover:bg-dark-200 transition-colors"
+                            className="p-1.5 rounded-full bg-dark-300 text-light-300 hover:bg-dark-200 transition-colors"
                             title="View details"
                           >
                             <ArrowRight size={16} />
@@ -357,6 +517,22 @@ export const TokenListPage: React.FC = () => {
                               <ArrowRight size={16} />
                             </Link>
                           </div>
+                        </div>
+
+                        {/* Tokenomics Pie Chart */}
+                        <div
+                          className="flex items-center justify-center relative mt-2"
+                          ref={el => tokenomicsAnchorRefs.current[sortedProjects.indexOf(project)] = el}
+                          onMouseEnter={() => setHoveredTokenomicsIdx(sortedProjects.indexOf(project))}
+                          onMouseLeave={() => setHoveredTokenomicsIdx(null)}
+                        >
+                          <TokenomicsPieChart tokenomics={project.virtual.tokenomics ?? []} />
+                          {hoveredTokenomicsIdx === sortedProjects.indexOf(project) && (
+                            <TokenomicsPieChartPopup
+                              virtualId={project.virtual.id}
+                              onClose={() => setHoveredTokenomicsIdx(null)}
+                            />
+                          )}
                         </div>
                       </div>
                     </div>
