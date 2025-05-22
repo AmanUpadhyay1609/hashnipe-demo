@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import axios from 'axios';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import axios, { AxiosError } from 'axios';
 
 export interface Virtual {
   id: number;
@@ -53,6 +53,10 @@ interface GenesisResponse {
 
 export type StatusFilter = 'all' | 'active' | 'ended' | 'upcoming' | 'top-snipe';
 
+interface ApiErrorResponse {
+  message: string;
+}
+
 interface GenesisContextType {
   genesisLaunches: GenesisLaunch[];
   loading: boolean;
@@ -90,7 +94,7 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
   const [genesisLaunches, setGenesisLaunches] = useState<GenesisLaunch[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentFilter, setCurrentFilter] = useState<StatusFilter>('active');
+  const [currentFilter, setCurrentFilter] = useState<StatusFilter>('all');
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
@@ -102,8 +106,20 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
 
   const baseUrl = 'https://api.virtuals.io/api/geneses';
 
-  const fetchGenesisLaunches = async (page: number = 1, filter: StatusFilter = currentFilter) => {
+  const handleApiError = (error: unknown) => {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      setError(axiosError.response?.data?.message || 'Failed to fetch genesis launches');
+    } else {
+      setError('An unexpected error occurred');
+    }
+    setLoading(false);
+    console.error('Error:', error);
+  };
+
+  const fetchGenesisLaunches = useCallback(async (page: number = 1, filter: StatusFilter = currentFilter) => {
     setLoading(true);
+    setError(null);
 
     try {
       let url = `${baseUrl}?pagination[page]=${page}&pagination[pageSize]=12&filters[virtual][priority][$ne]=-1`;
@@ -120,71 +136,60 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
       }
 
       const response = await axios.get<GenesisResponse>(url);
-
       setGenesisLaunches(response.data.data);
       setPagination(response.data.meta.pagination);
-      setLoading(false);
-
-      // Update the current filter
       setCurrentFilter(filter);
     } catch (err) {
-      setError('Failed to fetch genesis launches');
+      handleApiError(err);
+    } finally {
       setLoading(false);
-      console.error('Error fetching genesis launches:', err);
     }
-  };
+  }, [currentFilter]);
 
-  // Fetch all data categories for the homepage 
-  const fetchAllCategories = async () => {
+  const fetchAllCategories = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
     try {
-      // Active projects (STARTED)
-      const activeResponse = await axios.get<GenesisResponse>(
-        `${baseUrl}?pagination[page]=1&pagination[pageSize]=6&filters[virtual][priority][$ne]=-1&filters[status][$in][0]=STARTED&sort=startsAt:asc`
-      );
+      const [activeResponse, endedResponse, upcomingResponse] = await Promise.all([
+        axios.get<GenesisResponse>(
+          `${baseUrl}?pagination[page]=1&pagination[pageSize]=6&filters[virtual][priority][$ne]=-1&filters[status][$in][0]=STARTED&sort=startsAt:asc`
+        ),
+        axios.get<GenesisResponse>(
+          `${baseUrl}?pagination[page]=1&pagination[pageSize]=6&filters[virtual][priority][$ne]=-1&filters[status][$in][0]=FAILED&filters[status][$in][1]=FINALIZED&sort=updatedAt:desc`
+        ),
+        axios.get<GenesisResponse>(
+          `${baseUrl}?pagination[page]=1&pagination[pageSize]=6&filters[virtual][priority][$ne]=-1&filters[status][$in][0]=INITIALIZED&sort=startsAt:asc`
+        )
+      ]);
+
       setActiveProjects(activeResponse.data.data);
-
-      // Ended projects (FINALIZED, FAILED)
-      const endedResponse = await axios.get<GenesisResponse>(
-        `${baseUrl}?pagination[page]=1&pagination[pageSize]=6&filters[virtual][priority][$ne]=-1&filters[status][$in][0]=FAILED&filters[status][$in][1]=FINALIZED&sort=updatedAt:desc`
-      );
       setEndedProjects(endedResponse.data.data);
-
-      // Upcoming projects (INITIALIZED)
-      const upcomingResponse = await axios.get<GenesisResponse>(
-        `${baseUrl}?pagination[page]=1&pagination[pageSize]=6&filters[virtual][priority][$ne]=-1&filters[status][$in][0]=INITIALIZED&sort=startsAt:asc`
-      );
       setUpcomingProjects(upcomingResponse.data.data);
-
-      // Initially set the main list to active projects
       setGenesisLaunches(activeResponse.data.data);
       setPagination(activeResponse.data.meta.pagination);
-
-      setLoading(false);
     } catch (err) {
-      setError('Failed to fetch genesis launches');
+      handleApiError(err);
+    } finally {
       setLoading(false);
-      console.error('Error fetching genesis launches:', err);
     }
-  };
-
-  useEffect(() => {
-    // Fetch data for the homepage
-    fetchAllCategories();
-
-    // Set up polling every 30 seconds - note we increased interval to reduce API load
-    const interval = setInterval(fetchAllCategories, 30000);
-
-    return () => clearInterval(interval);
   }, []);
+
+  // useEffect(() => {
+  //   fetchAllCategories();
+  //   const interval = setInterval(fetchAllCategories, 30000);
+  //   return () => clearInterval(interval);
+  // }, [fetchAllCategories]);
 
   // Calculate top snipe picks whenever active projects update
   useEffect(() => {
     // Top snipe picks - projects with highest score
-    const topPicks = [...activeProjects].sort((a, b) => {
-      const scoreA = getProjectScore(a);
-      const scoreB = getProjectScore(b);
-      return scoreB - scoreA;
-    }).slice(0, 6);
+    const topPicks = [...activeProjects]
+      .sort((a, b) => {
+        const scoreA = getProjectScore(a);
+        const scoreB = getProjectScore(b);
+        return scoreB - scoreA;
+      }).slice(0, 6);
 
     setTopSnipeProjects(topPicks);
   }, [activeProjects]);

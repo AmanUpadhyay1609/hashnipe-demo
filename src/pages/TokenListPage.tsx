@@ -41,7 +41,8 @@ export const TokenListPage: React.FC = () => {
   });
 
   // Sort projects based on sort option
-  const sortedProjects = [...filteredProjects].sort((a, b) => {
+  const sortedProjects = [...filteredProjects]
+  .sort((a, b) => {
     if (sortOption === 'score') {
       return getProjectScore(b) - getProjectScore(a);
     } else if (sortOption === 'recent') {
@@ -106,7 +107,7 @@ export const TokenListPage: React.FC = () => {
               className="w-full p-2 rounded-lg bg-dark-400 border border-dark-200 text-light-300 appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500/50"
               value={currentFilter}
               onChange={(e) => {
-                setCurrentFilter(e.target.value as any);
+                setCurrentFilter(e.target.value as any || "all");
                 setCurrentPage(1);
               }}
             >
@@ -167,9 +168,11 @@ export const TokenListPage: React.FC = () => {
               {sortedProjects.length === 0 ? (
                 <div className="p-6 text-center text-light-400">
                   No tokens found matching your criteria
+
                 </div>
               ) : (
                 sortedProjects.map((project) => {
+
                   const score = getProjectScore(project);
                   const recommended = isRecommendedToSnipe(project);
                   const endDate = new Date(project.endsAt);
@@ -214,10 +217,10 @@ export const TokenListPage: React.FC = () => {
                         {/* Score */}
                         <div className="col-span-1 text-center">
                           <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${score >= 70
-                              ? 'text-success-400 bg-success-500/10 border border-success-500/30'
-                              : score >= 50
-                                ? 'text-warning-400 bg-warning-500/10 border border-warning-500/30'
-                                : 'text-light-400 bg-light-500/10 border border-light-500/30'
+                            ? 'text-success-400 bg-success-500/10 border border-success-500/30'
+                            : score >= 50
+                              ? 'text-warning-400 bg-warning-500/10 border border-warning-500/30'
+                              : 'text-light-400 bg-light-500/10 border border-light-500/30'
                             }`}>
                             {score}
                           </div>
@@ -307,10 +310,10 @@ export const TokenListPage: React.FC = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
                             <div className={`flex items-center justify-center w-8 h-8 rounded-full ${score >= 70
-                                ? 'text-success-400 bg-success-500/10 border border-success-500/30'
-                                : score >= 50
-                                  ? 'text-warning-400 bg-warning-500/10 border border-warning-500/30'
-                                  : 'text-light-400 bg-light-500/10 border border-light-500/30'
+                              ? 'text-success-400 bg-success-500/10 border border-success-500/30'
+                              : score >= 50
+                                ? 'text-warning-400 bg-warning-500/10 border border-warning-500/30'
+                                : 'text-light-400 bg-light-500/10 border border-light-500/30'
                               }`}>
                               {score}
                             </div>
@@ -380,8 +383,8 @@ export const TokenListPage: React.FC = () => {
                       key={pageNumber}
                       onClick={() => setCurrentPage(pageNumber)}
                       className={`px-4 py-2 border border-dark-200 ${currentPage === pageNumber
-                          ? 'bg-primary-600 text-white'
-                          : 'bg-dark-400 text-light-300 hover:bg-dark-300'
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-dark-400 text-light-300 hover:bg-dark-300'
                         }`}
                     >
                       {pageNumber}
