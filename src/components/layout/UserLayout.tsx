@@ -25,6 +25,7 @@ interface UserLayoutProps {
 
 export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const { decodedToken, logout } = useAuth();
@@ -57,12 +58,17 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
     ];
 
     return (
-        <div className="flex h-screen bg-dark-500 text-xs">
+        <div className="flex h-screen bg-dark-500 text-xs flex-col md:flex-row overflow-x-hidden">
             {/* Sidebar */}
             <motion.aside
-                initial={{ width: 200 }}
-                animate={{ width: isSidebarCollapsed ? 80 : 240 }}
-                className="bg-dark-400 border-r border-dark-100 relative"
+                initial={{ x: -300 }}
+                animate={{
+                    x: isSidebarOpen || window.innerWidth >= 768 ? 0 : -300,
+                    width: isSidebarCollapsed && window.innerWidth >= 768 ? 80 : window.innerWidth < 768 ? '100vw' : 240
+                }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className={`bg-dark-400 border-r border-dark-100 fixed md:static z-40 top-0 left-0 h-full md:h-auto md:relative ${isSidebarOpen ? 'block' : 'hidden'} md:block`}
+                style={{ maxWidth: '100vw' }}
             >
                 <div className="p-4">
                     <div className="flex items-center justify-between mb-8">
@@ -74,21 +80,21 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                                     <span className="text-white">Shnipe</span>
                                 </span>
                             </div>
-                        </>
-
-                        )}
+                        </>)}
                         <button
-                            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                            className="p-2 rounded-lg hover:bg-dark-300 transition-colors"
+                            onClick={() => {
+                                if (window.innerWidth < 768) setIsSidebarOpen(false);
+                                else setIsSidebarCollapsed(!isSidebarCollapsed);
+                            }}
+                            className="p-2 rounded-lg hover:bg-dark-300 transition-colors md:block"
                         >
-                            {isSidebarCollapsed ? (
+                            {isSidebarCollapsed && window.innerWidth >= 768 ? (
                                 <Hash size={28} className="text-primary-400" />
                             ) : (
                                 <ChevronLeft size={20} className="text-light-400" />
                             )}
                         </button>
                     </div>
-
                     <nav className="space-y-1">
                         {navItems.map((item) => {
                             const Icon = item.icon;
@@ -101,32 +107,41 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                                         ? 'bg-primary-500 text-white'
                                         : 'text-light-400 hover:bg-dark-300 hover:text-white'
                                         }`}
+                                    onClick={() => window.innerWidth < 768 && setIsSidebarOpen(false)}
                                 >
                                     <Icon size={18} />
-                                    {!isSidebarCollapsed && <span className="text-xs font-normal">{item.label}</span>}
+                                    {!isSidebarCollapsed && window.innerWidth >= 768 && <span className="text-xs font-normal">{item.label}</span>}
+                                    {window.innerWidth < 768 && <span className="text-xs font-normal">{item.label}</span>}
                                 </Link>
                             );
                         })}
                     </nav>
                 </div>
-
                 <div className="absolute bottom-0 w-full p-4 border-t border-dark-100">
                     <button
                         onClick={logout}
                         className="flex items-center space-x-3 px-4 py-3 rounded-lg text-light-400 hover:bg-dark-300 hover:text-white transition-colors w-full"
                     >
                         <LogOut size={20} />
-                        {!isSidebarCollapsed && <span className="text-xs font-normal">Logout</span>}
+                        {!isSidebarCollapsed && window.innerWidth >= 768 && <span className="text-xs font-normal">Logout</span>}
+                        {window.innerWidth < 768 && <span className="text-xs font-normal">Logout</span>}
                     </button>
                 </div>
             </motion.aside>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-h-screen md:ml-0" style={{ marginLeft: 0 }}>
                 {/* Header */}
-                <header className="h-16 bg-dark-400 border-b border-dark-100 px-6 flex items-center justify-between">
-                    <div className="flex-1 max-w-2xl">
-                        <div className={`relative ${isSearchFocused ? 'ring-2 ring-primary-500' : ''}`}>
+                <header className="h-16 bg-dark-400 border-b border-dark-100 px-4 md:px-6 flex items-center justify-between sticky top-0 z-30">
+                    {/* Mobile menu button */}
+                    <button
+                        className="md:hidden p-2 rounded-lg hover:bg-dark-300 transition-colors mr-2"
+                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    >
+                        <Hash size={24} className="text-primary-400" />
+                    </button>
+                    <div className="flex-1 max-w-full md:max-w-2xl">
+                        <div className={`relative ${isSearchFocused ? 'ring-2 ring-primary-500' : ''}`}> 
                             <Search
                                 size={20}
                                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-light-400"
@@ -142,14 +157,12 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                             />
                         </div>
                     </div>
-
-                    <div className="flex items-center space-x-4 ml-6">
+                    <div className="flex items-center space-x-2 md:space-x-4 ml-2 md:ml-6">
                         <button className="p-2 rounded-lg hover:bg-dark-300 transition-colors relative">
                             <Bell size={20} className="text-light-400" />
                             <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-primary-500"></span>
                         </button>
-
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-2 md:space-x-4">
                             <button
                                 onClick={handleCopyUsername}
                                 className="flex items-center space-x-2 bg-dark-300 px-3 py-1 rounded-lg hover:bg-dark-200 transition-colors group"
@@ -165,9 +178,8 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                         </div>
                     </div>
                 </header>
-
                 {/* Main Content Area */}
-                <main className="flex-1 overflow-auto p-0">
+                <main className="flex-1 overflow-auto p-2 md:p-0">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -176,11 +188,10 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                         {children}
                     </motion.div>
                 </main>
-
                 {/* Footer */}
-                <footer className="h-12 bg-dark-400 border-t border-dark-100 px-6 flex items-center justify-between">
+                <footer className="h-12 bg-dark-400 border-t border-dark-100 px-4 md:px-6 flex flex-col md:flex-row items-center justify-between">
                     <span className="text-light-500 text-xs">© 2024 Hashnipe. All rights reserved.</span>
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2 md:space-x-4 mt-2 md:mt-0">
                         <a href="#" className="text-light-500 hover:text-primary-400 text-xs transition-colors">
                             Privacy Policy
                         </a>
