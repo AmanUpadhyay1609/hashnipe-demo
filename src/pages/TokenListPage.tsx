@@ -5,6 +5,7 @@ import { Search, ArrowUpDown, Zap, Clock, CheckCircle, XCircle, AlertCircle, Arr
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
+import { SnipeForm } from '../components/SnipeForm';
 
 export const TokenListPage: React.FC = () => {
   const {
@@ -25,6 +26,8 @@ export const TokenListPage: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sortOption, setSortOption] = useState<string>('score');
+  const [selectedProject, setSelectedProject] = useState<GenesisLaunch | null>(null);
+  const [isSnipeFormOpen, setIsSnipeFormOpen] = useState(false);
 
   // Fetch data when page changes
   useEffect(() => {
@@ -42,18 +45,18 @@ export const TokenListPage: React.FC = () => {
 
   // Sort projects based on sort option
   const sortedProjects = [...filteredProjects]
-  .sort((a, b) => {
-    if (sortOption === 'score') {
-      return getProjectScore(b) - getProjectScore(a);
-    } else if (sortOption === 'recent') {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    } else if (sortOption === 'ending') {
-      return new Date(a.endsAt).getTime() - new Date(b.endsAt).getTime();
-    } else if (sortOption === 'participants') {
-      return b.totalParticipants - a.totalParticipants;
-    }
-    return 0;
-  });
+    .sort((a, b) => {
+      if (sortOption === 'score') {
+        return getProjectScore(b) - getProjectScore(a);
+      } else if (sortOption === 'recent') {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      } else if (sortOption === 'ending') {
+        return new Date(a.endsAt).getTime() - new Date(b.endsAt).getTime();
+      } else if (sortOption === 'participants') {
+        return b.totalParticipants - a.totalParticipants;
+      }
+      return 0;
+    });
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -86,8 +89,16 @@ export const TokenListPage: React.FC = () => {
   };
 
   const handleSnipe = async (project: GenesisLaunch) => {
-    // Implement snipe functionality
-    console.log('Sniping project:', project.virtual.name);
+    setSelectedProject(project);
+    setIsSnipeFormOpen(true);
+  };
+
+  const handleSnipeSubmit = async (amount: number) => {
+    if (selectedProject) {
+      // Implement actual snipe functionality here
+      console.log('Sniping project:', selectedProject.virtual.name, 'Amount:', amount);
+      // You would typically call your snipe function here
+    }
   };
 
   const handleSubscribe = async (project: GenesisLaunch) => {
@@ -405,6 +416,19 @@ export const TokenListPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Add SnipeForm */}
+      {selectedProject && (
+        <SnipeForm
+          project={selectedProject}
+          isOpen={isSnipeFormOpen}
+          onClose={() => {
+            setIsSnipeFormOpen(false);
+            setSelectedProject(null);
+          }}
+          onSnipe={handleSnipeSubmit}
+        />
+      )}
     </div>
   );
 };
