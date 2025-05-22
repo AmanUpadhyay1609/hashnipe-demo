@@ -58,7 +58,14 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
     ];
 
     return (
-        <div className="flex h-screen bg-dark-500 text-xs flex-col md:flex-row overflow-x-hidden">
+        <div className="flex h-screen text-xs relative">
+            {/* Gradient background */}
+            <div
+                className="fixed inset-0 -z-10"
+                style={{
+                    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #38bdf8 100%)'
+                }}
+            />
             {/* Sidebar */}
             <motion.aside
                 initial={{ x: -300 }}
