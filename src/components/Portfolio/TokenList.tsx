@@ -69,9 +69,9 @@ const TokenList: React.FC<TokenListProps> = ({ tokens, isVirtual = false }) => {
     ];
 
   return (
-    <div className="bg-gray-800 rounded-xl overflow-hidden shadow-xl">
+    <div className="bg-dark-400 rounded-xl overflow-hidden shadow-xl">
       {/* Header */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 p-3 sm:p-4 bg-gray-800 border-b border-gray-700 text-xs sm:text-sm font-medium text-gray-400">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 p-3 sm:p-4 bg-dark-400  border-b border-dark-300 text-xs sm:text-sm font-medium text-gray-400">
         {headerItems.map((item) => (
           <div 
             key={item.id}

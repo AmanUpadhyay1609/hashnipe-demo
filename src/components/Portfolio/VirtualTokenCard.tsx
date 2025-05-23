@@ -1,5 +1,4 @@
 import React from 'react';
-import { InfoIcon } from 'lucide-react';
 
 interface VirtualTokenCardProps {
   token: any;
@@ -78,10 +77,10 @@ const VirtualTokenCard: React.FC<VirtualTokenCardProps> = ({ token }) => {
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 p-3 sm:p-4 hover:bg-gray-750 transition-colors duration-200">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 p-3 sm:p-4 hover:bg-dark-400  transition-colors duration-200">
       {/* Token Info */}
       <div className="flex items-center col-span-2 md:col-span-1">
-        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-dark-400  flex-shrink-0">
           {getTokenImage()}
         </div>
         <div className="ml-2 sm:ml-3">

@@ -40,7 +40,7 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
   };
   
   const getSecurityScoreColor = () => {
-    if (!token.security_score) return 'bg-gray-600';
+    if (!token.security_score) return 'bg-dark-300';
     if (token.security_score >= 80) return 'bg-green-500';
     if (token.security_score >= 50) return 'bg-yellow-500';
     return 'bg-red-500';
@@ -60,10 +60,10 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 p-3 sm:p-4 hover:bg-gray-750 transition-colors duration-200">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 p-3 sm:p-4 hover:bg-dark-450 transition-colors duration-200">
       {/* Token Info */}
       <div className="flex items-center col-span-2 md:col-span-1">
-        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-dark-500 flex-shrink-0">
           {getTokenImage()}
         </div>
         <div className="ml-2 sm:ml-3">
@@ -102,7 +102,7 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
       
       {/* Portfolio % */}
       <div className="flex items-center col-span-2 md:col-span-1">
-        <div className="w-full bg-gray-700 rounded-full h-2">
+        <div className="w-full bg-dark-500 rounded-full h-2">
           <div 
             className="bg-primary-500 h-2 rounded-full" 
             style={{ width: `${Math.min(token.portfolio_percentage || 0, 100)}%` }}

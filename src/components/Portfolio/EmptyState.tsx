@@ -8,8 +8,8 @@ interface EmptyStateProps {
 
 const EmptyState: React.FC<EmptyStateProps> = ({ title, description }) => {
   return (
-    <div className="bg-gray-800 rounded-xl p-6 sm:p-12 flex flex-col items-center justify-center text-center shadow-xl">
-      <div className="bg-gray-700 p-3 sm:p-4 rounded-full mb-3 sm:mb-4">
+    <div className="bg-dark-500 rounded-xl p-6 sm:p-12 flex flex-col items-center justify-center text-center shadow-xl">
+      <div className="bg-dark-300p-3 sm:p-4 rounded-full mb-3 sm:mb-4">
         <Clock className="w-8 h-8 sm:w-12 sm:h-12 bg-none" />
       </div>
       <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">{title}</h3>
