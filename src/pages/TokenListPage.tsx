@@ -47,7 +47,7 @@ const TokenomicsPieChart = ({ tokenomics }) => {
 };
 
 const tokenomicsCache = {};
-const TokenomicsPieChartPopup = ({ virtualId, onClose }) => {
+const TokenomicsPieChartPopup = ({ virtualId, tokenName, onClose }) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,10 +113,11 @@ const TokenomicsPieChartPopup = ({ virtualId, onClose }) => {
       />
       {/* Chart Popup */}
       <div
-        className="relative bg-dark-400 border border-dark-200 rounded-lg shadow-lg p-4 flex items-center justify-center min-w-[380px] min-h-[380px]"
+        className="relative bg-dark-400 border border-dark-200 rounded-lg shadow-lg p-4 flex flex-col items-center justify-center min-w-[380px] min-h-[380px]"
         onMouseLeave={onClose}
         onClick={e => e.stopPropagation()}
       >
+        <div className="text-lg font-bold text-white mb-4">{tokenName}</div>
         {loading ? (
           <div className="flex items-center justify-center w-[360px] h-[360px]">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
@@ -167,8 +168,9 @@ export const TokenListPage: React.FC = () => {
 
   const [selectedProject, setSelectedProject] = useState<GenesisLaunch | null>();
   const [isSnipeFormOpen, setIsSnipeFormOpen] = useState(false);
-  const [hoveredTokenomicsIdx, setHoveredTokenomicsIdx] = useState<number | null>(null);
+  const [showTokenomicsPopupIdx, setShowTokenomicsPopupIdx] = useState<number | null>(null);
   const tokenomicsAnchorRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const tokenomicsHoverTimeout = useRef<NodeJS.Timeout | null>(null);
   const [searchTerm] = useState<string>('');
   const [sortOption, setSortOption] = useState<string>('score');
   const [selectedTradeProject, setSelectedTradeProject] = useState<GenesisLaunch | null>(null);
@@ -328,6 +330,12 @@ export const TokenListPage: React.FC = () => {
   const handleSubscribe = async (project: GenesisLaunch) => {
     console.log("Subscribe")
   }
+ 
+
+  const handleTradeClose = () => {
+    setIsTradeFormOpen(false);
+    setSelectedTradeProject(null);
+  };
 
   return (
     <div className="min-h-screen py-4">
@@ -479,15 +487,24 @@ export const TokenListPage: React.FC = () => {
                             <div
                               className="col-span-1 flex justify-center items-center relative min-w-[48px] h-8"
                               ref={el => tokenomicsAnchorRefs.current[sortedProjects.indexOf(project)] = el}
-                              onMouseEnter={() => setHoveredTokenomicsIdx(sortedProjects.indexOf(project))}
-                              onMouseLeave={() => setHoveredTokenomicsIdx(null)}
+                              onMouseEnter={() => {
+                                if (tokenomicsHoverTimeout.current) clearTimeout(tokenomicsHoverTimeout.current);
+                                tokenomicsHoverTimeout.current = setTimeout(() => {
+                                  setShowTokenomicsPopupIdx(sortedProjects.indexOf(project));
+                                }, 1000);
+                              }}
+                              onMouseLeave={() => {
+                                if (tokenomicsHoverTimeout.current) clearTimeout(tokenomicsHoverTimeout.current);
+                                setShowTokenomicsPopupIdx(null);
+                              }}
                               style={{ minWidth: 48, height: 32 }}
                             >
                               <TokenomicsPieChart tokenomics={project.virtual.tokenomics ?? []} />
-                              {hoveredTokenomicsIdx === sortedProjects.indexOf(project) && (
+                              {showTokenomicsPopupIdx === sortedProjects.indexOf(project) && (
                                 <TokenomicsPieChartPopup
                                   virtualId={project.virtual.id}
-                                  onClose={() => setHoveredTokenomicsIdx(null)}
+                                  tokenName={project.virtual.name}
+                                  onClose={() => setShowTokenomicsPopupIdx(null)}
                                 />
                               )}
                             </div>
@@ -506,6 +523,33 @@ export const TokenListPage: React.FC = () => {
                               >
                                 {isEnded ? <DollarSign size={16} /> : <Zap size={16} />}
                               </button>
+                              {isActive && (
+                                <button
+                                  onClick={() => handleSnipe(project)}
+                                  className="p-1.5 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+                                  title="Snipe at launch"
+                                >
+                                  <Zap size={16} />
+                                </button>
+                              )}
+                              {isUpcoming && (
+                                <button
+                                  onClick={() => handleSubscribe()}
+                                  className="p-1.5 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
+                                  title="Subscribe"
+                                >
+                                  <Clock size={16} />
+                                </button>
+                              )}
+                              {project.status === 'FINALIZED' && (
+                                <button
+                                  onClick={() => handleTrade(project)}
+                                  className="p-1.5 rounded-full bg-success-500 text-white hover:bg-success-600 transition-colors"
+                                  title="Trade on Base"
+                                >
+                                  <DollarSign size={16} />
+                                </button>
+                              )}
                               <Link
                                 to={`/tokens/${project.id}`}
                                 className="p-1.5 rounded-full bg-dark-300 text-light-300 hover:bg-dark-200 transition-colors"
