@@ -20,7 +20,7 @@ const ToggleButtonGroup: React.FC<ToggleButtonGroupProps> = ({ activeTab, onTabC
           key={tab.id}
           className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-md transition-all duration-200 text-xs sm:text-sm font-medium whitespace-nowrap ${
             activeTab === tab.id
-              ? 'bg-blue-500 text-white shadow-lg'
+              ? 'bg-primary-500 text-white shadow-lg'
               : 'bg-transparent text-gray-400 hover:text-white hover:bg-gray-700'
           }`}
           onClick={() => onTabChange(tab.id)}

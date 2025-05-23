@@ -61,7 +61,7 @@ const VirtualTokenCard: React.FC<VirtualTokenCardProps> = ({ token }) => {
   const getTokenImage = () => {
     if (imageError) {
       return (
-        <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+        <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-bold">
           {getTokenInitials()}
         </div>
       );
@@ -120,7 +120,7 @@ const VirtualTokenCard: React.FC<VirtualTokenCardProps> = ({ token }) => {
       <div className="flex items-center justify-between">
         <div className="font-medium text-white text-sm sm:text-base">${formatNumber(Number(token.usdValue || 0))}</div>
         {token.status === 'ACTIVATING' && (
-          <button className="px-2 py-1 sm:px-3 sm:py-1 bg-blue-600 hover:bg-blue-700 rounded-md text-xs text-white transition-colors">
+          <button className="px-2 py-1 sm:px-3 sm:py-1 bg-primary-600 hover:bg-primary-700 rounded-md text-xs text-white transition-colors">
             Stake
           </button>
         )}

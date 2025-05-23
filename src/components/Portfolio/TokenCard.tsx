@@ -23,7 +23,7 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
   const getTokenImage = () => {
     if (imageError) {
       return (
-        <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+        <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-bold">
           {getTokenInitials()}
         </div>
       );
@@ -104,7 +104,7 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
       <div className="flex items-center col-span-2 md:col-span-1">
         <div className="w-full bg-gray-700 rounded-full h-2">
           <div 
-            className="bg-blue-500 h-2 rounded-full" 
+            className="bg-primary-500 h-2 rounded-full" 
             style={{ width: `${Math.min(token.portfolio_percentage || 0, 100)}%` }}
           ></div>
         </div>
