@@ -286,12 +286,21 @@ export const TokenListPage: React.FC = () => {
   };
 
   const handleSnipe = async (project: GenesisLaunch) => {
-    // Always set the new project and open the snipe form
-    setSelectedProject(project);
-    setIsSnipeFormOpen(true);
-    // Close the trade form if it's open
-    setSelectedTradeProject(null);
-    setIsTradeFormOpen(false);
+    const isEnded = project.status === 'FINALIZED' || project.status === 'FAILED';
+
+    if (isEnded) {
+      // For ended tokens, show BuySellForm
+      setSelectedTradeProject(project);
+      setIsTradeFormOpen(true);
+      setSelectedProject(null);
+      setIsSnipeFormOpen(false);
+    } else {
+      // For all other tokens, show SnipeForm
+      setSelectedProject(project);
+      setIsSnipeFormOpen(true);
+      setSelectedTradeProject(null);
+      setIsTradeFormOpen(false);
+    }
   };
 
   const handleSnipeSubmit = async (amount: number) => {
