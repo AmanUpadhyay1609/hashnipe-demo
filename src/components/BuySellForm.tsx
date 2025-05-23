@@ -50,12 +50,6 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                             <div className="text-sm text-primary-400">${project.virtual.symbol}</div>
                         </div>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 rounded-full hover:bg-dark-300 transition-colors"
-                    >
-                        <X size={20} className="text-light-400" />
-                    </button>
                 </div>
             </div>
 
@@ -159,13 +153,7 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3">
-                    <button
-                        onClick={onClose}
-                        className="flex-1 bg-dark-300 hover:bg-dark-200 text-white font-medium py-3 rounded-lg transition-colors"
-                    >
-                        Cancel
-                    </button>
+                <div className="flex gap-2 mt-4">
                     <button
                         onClick={handleTrade}
                         className={`flex-1 font-medium py-3 rounded-lg transition-colors flex items-center justify-center space-x-2

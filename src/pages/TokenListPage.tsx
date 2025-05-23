@@ -213,18 +213,39 @@ export const TokenListPage: React.FC = () => {
 
   // Set initial project when data is loaded
   useEffect(() => {
-    if (sortedProjects.length > 0 && !selectedProject) {
+    if (sortedProjects.length > 0 && !selectedProject && !selectedTradeProject) {
       const initialProject = sortedProjects[0];
       const isEnded = initialProject.status === 'FINALIZED' || initialProject.status === 'FAILED';
       if (isEnded) {
         setSelectedTradeProject(initialProject);
         setIsTradeFormOpen(true);
+        setIsSnipeFormOpen(false);
       } else {
         setSelectedProject(initialProject);
         setIsSnipeFormOpen(true);
+        setIsTradeFormOpen(false);
       }
     }
-  }, [sortedProjects, selectedProject]);
+  }, [sortedProjects, selectedProject, selectedTradeProject]);
+
+  // Update form when filter changes
+  useEffect(() => {
+    if (sortedProjects.length > 0) {
+      const firstProject = sortedProjects[0];
+      const isEnded = firstProject.status === 'FINALIZED' || firstProject.status === 'FAILED';
+      if (isEnded) {
+        setSelectedTradeProject(firstProject);
+        setIsTradeFormOpen(true);
+        setSelectedProject(null);
+        setIsSnipeFormOpen(false);
+      } else {
+        setSelectedProject(firstProject);
+        setIsSnipeFormOpen(true);
+        setSelectedTradeProject(null);
+        setIsTradeFormOpen(false);
+      }
+    }
+  }, [currentFilter, sortedProjects]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -289,15 +310,6 @@ export const TokenListPage: React.FC = () => {
   const handleSubscribe = async (project: GenesisLaunch) => {
     console.log("Subscribe")
   }
-  const handleTradeClose = () => {
-    setIsTradeFormOpen(false);
-    setSelectedTradeProject(null);
-  };
-
-  const handleSnipeClose = () => {
-    setIsSnipeFormOpen(false);
-    setSelectedProject(null);
-  };
 
   return (
     <div className="min-h-screen py-4">
@@ -612,7 +624,7 @@ export const TokenListPage: React.FC = () => {
               <SnipeForm
                 project={selectedProject}
                 isOpen={isSnipeFormOpen}
-                onClose={handleSnipeClose}
+                onClose={() => { }}
                 onSnipe={handleSnipeSubmit}
               />
             </div>
@@ -623,7 +635,7 @@ export const TokenListPage: React.FC = () => {
               <BuySellForm
                 project={selectedTradeProject}
                 isOpen={isTradeFormOpen}
-                onClose={handleTradeClose}
+                onClose={() => { }}
               />
             </div>
           )}

@@ -44,12 +44,6 @@ export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, 
                                     <p className="text-sm text-primary-400">${project.virtual.symbol}</p>
                                 </div>
                             </div>
-                            <button
-                                onClick={onClose}
-                                className="p-2 rounded-full hover:bg-dark-400 transition-colors"
-                            >
-                                <X size={20} className="text-light-400" />
-                            </button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
