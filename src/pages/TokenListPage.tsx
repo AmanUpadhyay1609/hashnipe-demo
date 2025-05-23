@@ -165,7 +165,7 @@ export const TokenListPage: React.FC = () => {
 
   // const { address, connect, isConnecting } = useWallet();
 
-  const [selectedProject, setSelectedProject] = useState<GenesisLaunch | null>(null);
+  const [selectedProject, setSelectedProject] = useState<GenesisLaunch | null>();
   const [isSnipeFormOpen, setIsSnipeFormOpen] = useState(false);
   const [hoveredTokenomicsIdx, setHoveredTokenomicsIdx] = useState<number | null>(null);
   const tokenomicsAnchorRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -210,7 +210,21 @@ export const TokenListPage: React.FC = () => {
       }
       return 0;
     });
-  console.log("sortedProjects-->", sortedProjects)
+
+  // Set initial project when data is loaded
+  useEffect(() => {
+    if (sortedProjects.length > 0 && !selectedProject) {
+      const initialProject = sortedProjects[0];
+      const isEnded = initialProject.status === 'FINALIZED' || initialProject.status === 'FAILED';
+      if (isEnded) {
+        setSelectedTradeProject(initialProject);
+        setIsTradeFormOpen(true);
+      } else {
+        setSelectedProject(initialProject);
+        setIsSnipeFormOpen(true);
+      }
+    }
+  }, [sortedProjects, selectedProject]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -243,10 +257,18 @@ export const TokenListPage: React.FC = () => {
   };
 
   const handleSnipe = async (project: GenesisLaunch) => {
-    setSelectedProject(project);
-    setIsSnipeFormOpen(true);
-    setSelectedTradeProject(null);
-    setIsTradeFormOpen(false);
+    const isEnded = project.status === 'FINALIZED' || project.status === 'FAILED';
+    if (isEnded) {
+      setSelectedTradeProject(project);
+      setIsTradeFormOpen(true);
+      setSelectedProject(null);
+      setIsSnipeFormOpen(false);
+    } else {
+      setSelectedProject(project);
+      setIsSnipeFormOpen(true);
+      setSelectedTradeProject(null);
+      setIsTradeFormOpen(false);
+    }
   };
 
   const handleSnipeSubmit = async (amount: number) => {
@@ -270,6 +292,11 @@ export const TokenListPage: React.FC = () => {
   const handleTradeClose = () => {
     setIsTradeFormOpen(false);
     setSelectedTradeProject(null);
+  };
+
+  const handleSnipeClose = () => {
+    setIsSnipeFormOpen(false);
+    setSelectedProject(null);
   };
 
   return (
@@ -441,33 +468,13 @@ export const TokenListPage: React.FC = () => {
 
                             {/* Actions */}
                             <div className="col-span-1 flex justify-end items-center space-x-1">
-                              {isActive && (
-                                <button
-                                  onClick={() => handleSnipe(project)}
-                                  className="p-1.5 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
-                                  title="Snipe at launch"
-                                >
-                                  <Zap size={16} />
-                                </button>
-                              )}
-                              {isUpcoming && (
-                                <button
-                                  onClick={() => handleSubscribe(project)}
-                                  className="p-1.5 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
-                                  title="Subscribe"
-                                >
-                                  <Clock size={16} />
-                                </button>
-                              )}
-                              {project.status === 'FINALIZED' && (
-                                <button
-                                  onClick={() => handleTrade(project)}
-                                  className="p-1.5 rounded-full bg-success-500 text-white hover:bg-success-600 transition-colors"
-                                  title="Trade on Base"
-                                >
-                                  <DollarSign size={16} />
-                                </button>
-                              )}
+                              <button
+                                onClick={() => handleSnipe(project)}
+                                className={`p-1.5 rounded-full ${isEnded ? 'bg-success-500 hover:bg-success-600' : 'bg-primary-500 hover:bg-primary-600'} text-white transition-colors`}
+                                title={isEnded ? "Trade on Base" : "Snipe at launch"}
+                              >
+                                {isEnded ? <DollarSign size={16} /> : <Zap size={16} />}
+                              </button>
                               <Link
                                 to={`/tokens/${project.id}`}
                                 className="p-1.5 rounded-full bg-dark-300 text-light-300 hover:bg-dark-200 transition-colors"
@@ -530,30 +537,12 @@ export const TokenListPage: React.FC = () => {
                               </div>
 
                               <div className="flex space-x-2">
-                                {isActive && (
-                                  <button
-                                    onClick={() => handleSnipe(project)}
-                                    className="p-2 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
-                                  >
-                                    <Zap size={16} />
-                                  </button>
-                                )}
-                                {isUpcoming && (
-                                  <button
-                                    onClick={() => handleSnipe(project)}
-                                    className="p-2 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
-                                  >
-                                    <Clock size={16} />
-                                  </button>
-                                )}
-                                {project.status === 'FINALIZED' && (
-                                  <button
-                                    onClick={() => handleTrade(project)}
-                                    className="p-2 rounded-full bg-success-500 text-white hover:bg-success-600 transition-colors"
-                                  >
-                                    <DollarSign size={16} />
-                                  </button>
-                                )}
+                                <button
+                                  onClick={() => handleSnipe(project)}
+                                  className={`p-2 rounded-full ${isEnded ? 'bg-success-500 hover:bg-success-600' : 'bg-primary-500 hover:bg-primary-600'} text-white transition-colors`}
+                                >
+                                  {isEnded ? <DollarSign size={16} /> : <Zap size={16} />}
+                                </button>
                                 <Link
                                   to={`/tokens/${project.id}`}
                                   className="p-2 rounded-full bg-dark-300 text-light-300 hover:bg-dark-200 transition-colors"
@@ -618,17 +607,16 @@ export const TokenListPage: React.FC = () => {
           </div>
 
 
-          {selectedProject && (<div className="w-full lg:w-96 lg:sticky lg:top-6 self-start">
-            <SnipeForm
-              project={selectedProject}
-              isOpen={isSnipeFormOpen}
-              onClose={() => {
-                setIsSnipeFormOpen(false);
-                setSelectedProject(null);
-              }}
-              onSnipe={handleSnipeSubmit}
-            />
-          </div>)}
+          {selectedProject && (
+            <div className="w-full lg:w-96 lg:sticky lg:top-6 self-start">
+              <SnipeForm
+                project={selectedProject}
+                isOpen={isSnipeFormOpen}
+                onClose={handleSnipeClose}
+                onSnipe={handleSnipeSubmit}
+              />
+            </div>
+          )}
 
           {selectedTradeProject && (
             <div className="w-full lg:w-96 lg:sticky lg:top-6 self-start">

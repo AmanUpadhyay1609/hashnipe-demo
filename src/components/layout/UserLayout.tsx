@@ -24,7 +24,7 @@ interface UserLayoutProps {
 }
 
 export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -74,7 +74,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                     width: isSidebarCollapsed && window.innerWidth >= 768 ? 80 : window.innerWidth < 768 ? '100vw' : 240
                 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                className={`bg-dark-400 border-r border-dark-100 fixed md:static z-40 top-0 left-0 h-full md:h-auto md:relative ${isSidebarOpen ? 'block' : 'hidden'} md:block`}
+                className={`bg-dark-400 border-r border-dark-100 fixed z-40 top-0 left-0 h-full md:h-auto md:relative ${isSidebarOpen ? 'block' : 'hidden'} md:block`}
                 style={{ maxWidth: '100vw' }}
             >
                 <div className="p-4">
