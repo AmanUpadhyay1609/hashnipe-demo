@@ -215,7 +215,14 @@ export const TokenListPage: React.FC = () => {
 
   // Set initial project when data is loaded
   useEffect(() => {
-    if (sortedProjects.length > 0 && !selectedProject && !selectedTradeProject) {
+    // Only set the initial project if nothing is selected and this is the first load
+    if (
+      sortedProjects.length > 0 &&
+      !selectedProject &&
+      !selectedTradeProject &&
+      !isSnipeFormOpen &&
+      !isTradeFormOpen
+    ) {
       const initialProject = sortedProjects[0];
       const isEnded = initialProject.status === 'FINALIZED' || initialProject.status === 'FAILED';
       if (isEnded) {
@@ -228,26 +235,7 @@ export const TokenListPage: React.FC = () => {
         setIsTradeFormOpen(false);
       }
     }
-  }, [sortedProjects, selectedProject, selectedTradeProject]);
-
-  // Update form when filter changes
-  useEffect(() => {
-    if (sortedProjects.length > 0) {
-      const firstProject = sortedProjects[0];
-      const isEnded = firstProject.status === 'FINALIZED' || firstProject.status === 'FAILED';
-      if (isEnded) {
-        setSelectedTradeProject(firstProject);
-        setIsTradeFormOpen(true);
-        setSelectedProject(null);
-        setIsSnipeFormOpen(false);
-      } else {
-        setSelectedProject(firstProject);
-        setIsSnipeFormOpen(true);
-        setSelectedTradeProject(null);
-        setIsTradeFormOpen(false);
-      }
-    }
-  }, [currentFilter, sortedProjects]);
+  }, [sortedProjects, selectedProject, selectedTradeProject, isSnipeFormOpen, isTradeFormOpen]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
