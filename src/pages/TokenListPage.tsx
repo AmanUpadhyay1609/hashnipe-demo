@@ -250,30 +250,48 @@ export const TokenListPage: React.FC = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'STARTED':
-        return <Clock size={16} className="text-info-400" />;
+        return <div className="flex items-center space-x-1.5">
+          <div className="relative">
+            <div className="w-2 h-2 rounded-full bg-success-400"></div>
+            <div className="absolute inset-0 w-2 h-2 rounded-full bg-success-400 animate-ping opacity-75"></div>
+          </div>
+          <span className="text-xs font-medium text-success-400">Live</span>
+        </div>;
       case 'INITIALIZED':
-        return <AlertCircle size={16} className="text-warning-400" />;
+        return <div className="flex items-center space-x-1.5">
+          <div className="w-2 h-2 rounded-full bg-warning-400"></div>
+          <span className="text-xs font-medium text-warning-400">Upcoming</span>
+        </div>;
       case 'FINALIZED':
-        return <CheckCircle size={16} className="text-success-400" />;
+        return <div className="flex items-center space-x-1.5">
+          <div className="w-2 h-2 rounded-full bg-primary-400"></div>
+          <span className="text-xs font-medium text-primary-400">Ended</span>
+        </div>;
       case 'FAILED':
-        return <XCircle size={16} className="text-error-400" />;
+        return <div className="flex items-center space-x-1.5">
+          <div className="w-2 h-2 rounded-full bg-error-400"></div>
+          <span className="text-xs font-medium text-error-400">Failed</span>
+        </div>;
       default:
-        return <Clock size={16} className="text-light-400" />;
+        return <div className="flex items-center space-x-1.5">
+          <div className="w-2 h-2 rounded-full bg-light-400"></div>
+          <span className="text-xs font-medium text-light-400">Unknown</span>
+        </div>;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'STARTED':
-        return 'text-info-400 bg-info-500/10 border-info-500/20';
+        return 'bg-success-500/10 border-success-500/20';
       case 'INITIALIZED':
-        return 'text-warning-400 bg-warning-500/10 border-warning-500/20';
+        return 'bg-warning-500/10 border-warning-500/20';
       case 'FINALIZED':
-        return 'text-success-400 bg-success-500/10 border-success-500/20';
+        return 'bg-primary-500/10 border-primary-500/20';
       case 'FAILED':
-        return 'text-error-400 bg-error-500/10 border-error-500/20';
+        return 'bg-error-500/10 border-error-500/20';
       default:
-        return 'text-light-400 bg-light-500/10 border-light-500/20';
+        return 'bg-light-500/10 border-light-500/20';
     }
   };
 
@@ -370,9 +388,8 @@ export const TokenListPage: React.FC = () => {
             ) : (
               <div className="bg-dark-500 rounded-2xl overflow-x-auto overflow-y-hidden border border-dark-300">
                 {/* Table Header */}
-                <div className="hidden md:grid grid-cols-10 gap-2 p-3 bg-dark-400 text-light-300 font-medium text-sm border-b border-dark-300 items-center">
+                <div className="hidden md:grid grid-cols-9 gap-2 p-3 bg-dark-400 text-light-300 font-medium text-sm border-b border-dark-300 items-center">
                   <div className="col-span-3">Token</div>
-                  <div className="col-span-1 text-center">Status</div>
                   <div className="col-span-1 text-center">Score</div>
                   <div className="col-span-1 text-center">Participants</div>
                   <div className="col-span-1 text-center">Total VIRTUAL</div>
@@ -407,30 +424,32 @@ export const TokenListPage: React.FC = () => {
                           className="p-4 hover:bg-dark-400/40 transition-colors"
                         >
                           {/* Desktop View */}
-                          <div className="hidden md:grid grid-cols-10 gap-2 items-center">
+                          <div className="hidden md:grid grid-cols-9 gap-2 items-center">
                             {/* Token */}
                             <div className="col-span-3 flex items-center space-x-3">
-                              <Link to={`/tokens/${project.id}`} className="w-10 h-10 rounded-full overflow-hidden bg-dark-300 flex-shrink-0">
-                                {project.virtual.image && (
+                              <Link to={`/tokens/${project.id}`} className="w-10 h-10 rounded-full overflow-hidden bg-dark-300 flex-shrink-0 ring-2 ring-dark-200 hover:ring-primary-500 transition-all">
+                                {project.virtual.image ? (
                                   <img
                                     src={project.virtual.image.url}
                                     alt={project.virtual.name}
                                     className="w-full h-full object-cover"
                                   />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-dark-400 text-light-400">
+                                    {project.virtual.symbol.charAt(0)}
+                                  </div>
                                 )}
                               </Link>
-                              <div>
+                              <div className="flex flex-col">
                                 <Link to={`/tokens/${project.id}`} className="font-medium text-white hover:text-primary-400 transition-colors">
                                   {project.virtual.name}
                                 </Link>
-                                <div className="text-xs text-primary-400">${project.virtual.symbol}</div>
-                              </div>
-                            </div>
-
-                            {/* Status */}
-                            <div className="col-span-1 flex justify-center">
-                              <div className={`px-2 py-1 rounded-md text-xs font-medium border ${getStatusColor(project.status)}`}>
-                                {getStatusIcon(project.status)}
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-xs text-primary-400">${project.virtual.symbol}</span>
+                                  <div className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(project.status)}`}>
+                                    {getStatusIcon(project.status)}
+                                  </div>
+                                </div>
                               </div>
                             </div>
 
@@ -518,7 +537,6 @@ export const TokenListPage: React.FC = () => {
 
                               <div className={`px-2 py-1 rounded-md text-xs font-medium border flex items-center space-x-1 ${getStatusColor(project.status)}`}>
                                 {getStatusIcon(project.status)}
-                                <span>{project.status}</span>
                               </div>
                             </div>
 
@@ -618,7 +636,6 @@ export const TokenListPage: React.FC = () => {
             )}
           </div>
 
-
           {selectedProject && (
             <div className="w-full lg:w-96 lg:sticky lg:top-6 self-start">
               <SnipeForm
@@ -639,11 +656,8 @@ export const TokenListPage: React.FC = () => {
               />
             </div>
           )}
-
-
         </div>
       </div>
-
     </div>
   );
 };
