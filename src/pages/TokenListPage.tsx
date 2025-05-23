@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useGenesis, GenesisLaunch, StatusFilter } from '../context/GenesisContext';
-import { Zap, Clock, CheckCircle, XCircle, AlertCircle, ArrowRight, ChevronRight, ChevronLeft, DollarSign } from 'lucide-react';
+import { Zap, Clock, ArrowRight, ChevronRight, ChevronLeft, DollarSign } from 'lucide-react';
 // import { useWallet } from '../context/WalletContext';
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
@@ -215,7 +215,14 @@ export const TokenListPage: React.FC = () => {
 
   // Set initial project when data is loaded
   useEffect(() => {
-    if (sortedProjects.length > 0 && !selectedProject && !selectedTradeProject) {
+    // Only set the initial project if nothing is selected and this is the first load
+    if (
+      sortedProjects.length > 0 &&
+      !selectedProject &&
+      !selectedTradeProject &&
+      !isSnipeFormOpen &&
+      !isTradeFormOpen
+    ) {
       const initialProject = sortedProjects[0];
       const isEnded = initialProject.status === 'FINALIZED' || initialProject.status === 'FAILED';
       if (isEnded) {
@@ -228,26 +235,7 @@ export const TokenListPage: React.FC = () => {
         setIsTradeFormOpen(false);
       }
     }
-  }, [sortedProjects, selectedProject, selectedTradeProject]);
-
-  // Update form when filter changes
-  useEffect(() => {
-    if (sortedProjects.length > 0) {
-      const firstProject = sortedProjects[0];
-      const isEnded = firstProject.status === 'FINALIZED' || firstProject.status === 'FAILED';
-      if (isEnded) {
-        setSelectedTradeProject(firstProject);
-        setIsTradeFormOpen(true);
-        setSelectedProject(null);
-        setIsSnipeFormOpen(false);
-      } else {
-        setSelectedProject(firstProject);
-        setIsSnipeFormOpen(true);
-        setSelectedTradeProject(null);
-        setIsTradeFormOpen(false);
-      }
-    }
-  }, [currentFilter, sortedProjects]);
+  }, [sortedProjects, selectedProject, selectedTradeProject, isSnipeFormOpen, isTradeFormOpen]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -299,12 +287,15 @@ export const TokenListPage: React.FC = () => {
 
   const handleSnipe = async (project: GenesisLaunch) => {
     const isEnded = project.status === 'FINALIZED' || project.status === 'FAILED';
+
     if (isEnded) {
+      // For ended tokens, show BuySellForm
       setSelectedTradeProject(project);
       setIsTradeFormOpen(true);
       setSelectedProject(null);
       setIsSnipeFormOpen(false);
     } else {
+      // For all other tokens, show SnipeForm
       setSelectedProject(project);
       setIsSnipeFormOpen(true);
       setSelectedTradeProject(null);
@@ -321,16 +312,17 @@ export const TokenListPage: React.FC = () => {
   };
 
   const handleTrade = async (project: GenesisLaunch) => {
+    // Always set the new project and open the trade form
     setSelectedTradeProject(project);
     setIsTradeFormOpen(true);
+    // Close the snipe form if it's open
     setSelectedProject(null);
     setIsSnipeFormOpen(false);
   };
 
   const handleSubscribe = async (project: GenesisLaunch) => {
-    console.log("Subscribe")
-  }
- 
+    console.log("Subscribe", project.virtual.name);
+  };
 
   const handleTradeClose = () => {
     setIsTradeFormOpen(false);
@@ -357,7 +349,7 @@ export const TokenListPage: React.FC = () => {
                       setIsSnipeFormOpen(false);
                       setIsTradeFormOpen(false);
                     }}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+                    className={`px-4 py-1 rounded-lg text-sm font-medium transition-all duration-200
                       ${currentFilter === option.value
                         ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20'
                         : 'bg-dark-400 text-light-300 hover:bg-dark-300 border border-dark-200'
@@ -516,30 +508,41 @@ export const TokenListPage: React.FC = () => {
 
                             {/* Actions */}
                             <div className="col-span-1 flex justify-end items-center space-x-1">
-                              <button
-                                onClick={() => handleSnipe(project)}
-                                className={`p-1.5 rounded-full ${isEnded ? 'bg-success-500 hover:bg-success-600' : 'bg-primary-500 hover:bg-primary-600'} text-white transition-colors`}
-                                title={isEnded ? "Trade on Base" : "Snipe at launch"}
-                              >
-                                {isEnded ? <DollarSign size={16} /> : <Zap size={16} />}
-                              </button>
                               {isActive && (
-                                <button
-                                  onClick={() => handleSnipe(project)}
-                                  className="p-1.5 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
-                                  title="Snipe at launch"
-                                >
-                                  <Zap size={16} />
-                                </button>
+                                <>
+                                  <button
+                                    onClick={() => handleSnipe(project)}
+                                    className="p-1.5 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+                                    title="Snipe at launch"
+                                  >
+                                    <Zap size={16} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleSubscribe(project)}
+                                    className="p-1.5 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
+                                    title="Subscribe"
+                                  >
+                                    <Clock size={16} />
+                                  </button>
+                                </>
                               )}
                               {isUpcoming && (
-                                <button
-                                  onClick={() => handleSubscribe()}
-                                  className="p-1.5 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
-                                  title="Subscribe"
-                                >
-                                  <Clock size={16} />
-                                </button>
+                                <>
+                                  <button
+                                    onClick={() => handleSnipe(project)}
+                                    className="p-1.5 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+                                    title="Snipe at launch"
+                                  >
+                                    <Zap size={16} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleSubscribe(project)}
+                                    className="p-1.5 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
+                                    title="Subscribe"
+                                  >
+                                    <Clock size={16} />
+                                  </button>
+                                </>
                               )}
                               {project.status === 'FINALIZED' && (
                                 <button
@@ -611,15 +614,55 @@ export const TokenListPage: React.FC = () => {
                               </div>
 
                               <div className="flex space-x-2">
-                                <button
-                                  onClick={() => handleSnipe(project)}
-                                  className={`p-2 rounded-full ${isEnded ? 'bg-success-500 hover:bg-success-600' : 'bg-primary-500 hover:bg-primary-600'} text-white transition-colors`}
-                                >
-                                  {isEnded ? <DollarSign size={16} /> : <Zap size={16} />}
-                                </button>
+                                {isActive && (
+                                  <>
+                                    <button
+                                      onClick={() => handleSnipe(project)}
+                                      className="p-2 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+                                      title="Snipe at launch"
+                                    >
+                                      <Zap size={16} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleSubscribe(project)}
+                                      className="p-2 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
+                                      title="Subscribe"
+                                    >
+                                      <Clock size={16} />
+                                    </button>
+                                  </>
+                                )}
+                                {isUpcoming && (
+                                  <>
+                                    <button
+                                      onClick={() => handleSnipe(project)}
+                                      className="p-2 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+                                      title="Snipe at launch"
+                                    >
+                                      <Zap size={16} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleSubscribe(project)}
+                                      className="p-2 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
+                                      title="Subscribe"
+                                    >
+                                      <Clock size={16} />
+                                    </button>
+                                  </>
+                                )}
+                                {project.status === 'FINALIZED' && (
+                                  <button
+                                    onClick={() => handleTrade(project)}
+                                    className="p-2 rounded-full bg-success-500 text-white hover:bg-success-600 transition-colors"
+                                    title="Trade on Base"
+                                  >
+                                    <DollarSign size={16} />
+                                  </button>
+                                )}
                                 <Link
                                   to={`/tokens/${project.id}`}
                                   className="p-2 rounded-full bg-dark-300 text-light-300 hover:bg-dark-200 transition-colors"
+                                  title="View details"
                                 >
                                   <ArrowRight size={16} />
                                 </Link>
