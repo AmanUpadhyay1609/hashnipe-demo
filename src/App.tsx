@@ -7,6 +7,7 @@ import { UserLayout } from './components/layout/UserLayout';
 import { GenesisProvider } from './context/GenesisContext';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
+import PortfolioPage from './components/Portfolio/PortfolioPage';
 
 // App Routes Component
 const AppRoutes = () => {
@@ -30,6 +31,7 @@ const AppRoutes = () => {
         <Route path="/tokens" element={<TokenListPage />} />
         <Route path="/tokens/:id" element={<TokenDetailPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/portfolio" element={<PortfolioPage />} />
       </Routes>
     </UserLayout>
   );
