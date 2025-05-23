@@ -9,7 +9,7 @@ interface TokenListProps {
 }
 
 const TokenList: React.FC<TokenListProps> = ({ tokens, isVirtual = false }) => {
-  const [sortField, setSortField] = useState('portfolio_percentage');
+  const [sortField, setSortField] = useState(isVirtual ? 'amount' : 'portfolio_percentage');
   const [sortDirection, setSortDirection] = useState('desc');
 
   const handleSort = (field: string) => {
@@ -26,14 +26,17 @@ const TokenList: React.FC<TokenListProps> = ({ tokens, isVirtual = false }) => {
     
     return sortableTokens.sort((a, b) => {
       let aValue = isVirtual ? 
-        (sortField === 'usdValue' ? a.usdValue : a.amount) : 
+        (sortField === 'usdValue' ? a.usdValue : 
+         sortField === 'amount' ? a.amount : 
+         a[sortField]) : 
         (a[sortField] || 0);
       
       let bValue = isVirtual ? 
-        (sortField === 'usdValue' ? b.usdValue : b.amount) : 
+        (sortField === 'usdValue' ? b.usdValue : 
+         sortField === 'amount' ? b.amount : 
+         b[sortField]) : 
         (b[sortField] || 0);
       
-      // Handle strings vs numbers
       if (typeof aValue === 'string' && typeof bValue === 'string') {
         return sortDirection === 'asc' ? 
           aValue.localeCompare(bValue) : 
@@ -51,7 +54,6 @@ const TokenList: React.FC<TokenListProps> = ({ tokens, isVirtual = false }) => {
       <ChevronDown className="w-4 h-4" />;
   };
 
-  // Define header based on whether it's virtual or regular tokens
   const headerItems = isVirtual ? 
     [
       { id: 'name', label: 'AI Agent' },
@@ -69,11 +71,13 @@ const TokenList: React.FC<TokenListProps> = ({ tokens, isVirtual = false }) => {
   return (
     <div className="bg-gray-800 rounded-xl overflow-hidden shadow-xl">
       {/* Header */}
-      <div className="grid grid-cols-4 gap-4 p-4 bg-gray-800 border-b border-gray-700 text-sm font-medium text-gray-400">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 p-3 sm:p-4 bg-gray-800 border-b border-gray-700 text-xs sm:text-sm font-medium text-gray-400">
         {headerItems.map((item) => (
           <div 
             key={item.id}
-            className="flex items-center cursor-pointer hover:text-white"
+            className={`flex items-center cursor-pointer hover:text-white ${
+              item.id === 'name' ? 'col-span-2 md:col-span-1' : ''
+            }`}
             onClick={() => handleSort(item.id)}
           >
             {item.label}
@@ -93,7 +97,7 @@ const TokenList: React.FC<TokenListProps> = ({ tokens, isVirtual = false }) => {
         ))}
         
         {tokens.length === 0 && (
-          <div className="p-8 text-center text-gray-400">
+          <div className="p-6 sm:p-8 text-center text-gray-400">
             No tokens found.
           </div>
         )}
