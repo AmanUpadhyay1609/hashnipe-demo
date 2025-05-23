@@ -1,7 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Zap, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GenesisLaunch } from '../context/GenesisContext';
+import { differenceInSeconds, format } from 'date-fns';
+
+// CountdownTimer component
+const CountdownTimer: React.FC<{ project: GenesisLaunch }> = ({ project }) => {
+    const [timeLeft, setTimeLeft] = useState<string>('');
+
+    useEffect(() => {
+        const updateTimer = () => {
+            const now = new Date();
+            const targetDate = new Date(project.endsAt);
+            const secondsLeft = differenceInSeconds(targetDate, now);
+
+            if (secondsLeft <= 0) {
+                setTimeLeft('Ended');
+                return;
+            }
+
+            // Calculate days, hours, minutes, and seconds
+            const days = Math.floor(secondsLeft / (24 * 3600));
+            const hours = Math.floor((secondsLeft % (24 * 3600)) / 3600);
+            const minutes = Math.floor((secondsLeft % 3600) / 60);
+            const seconds = secondsLeft % 60
+            // Format with leading zeros
+            const formattedTime = `${days}:${hours}:${minutes}:${seconds}`;
+            setTimeLeft(formattedTime);
+        };
+
+        // Initial update
+        updateTimer();
+
+        // Update every second
+        const interval = setInterval(updateTimer, 1000);
+
+        // Cleanup
+        return () => clearInterval(interval);
+    }, [project.endsAt]);
+
+    return (
+        <div className="px-4 py-2 rounded-lg text-base font-mono bg-warning-500/20 text-warning-400">
+            <div className="flex items-center space-x-2">
+                <span className="text-sm font-sans">Ends in</span>
+                <span className="tracking-wider">{timeLeft}</span>
+            </div>
+        </div>
+    );
+};
 
 interface SnipeFormProps {
     project: GenesisLaunch;
@@ -44,6 +90,7 @@ export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, 
                                     <p className="text-sm text-primary-400">${project.virtual.symbol}</p>
                                 </div>
                             </div>
+                            <CountdownTimer project={project} />
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
