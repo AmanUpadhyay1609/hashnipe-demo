@@ -94,7 +94,7 @@ const VirtualTokenCard: React.FC<VirtualTokenCardProps> = ({ token }) => {
       
       {/* VIRTUAL Value */}
       <div className="flex flex-col justify-center">
-        <div className="font-medium text-white">{formatNumber(Number(token.virtualTokenValue || 0))}</div>
+        <div className="font-medium text-white">{formatNumber(Number(token.virtualTokenValue || 0)/10**18)}</div>
         {token.chain && (
           <div className="text-xs text-gray-400">
             Chain: {token.chain}
