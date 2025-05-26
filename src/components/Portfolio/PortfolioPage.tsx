@@ -6,6 +6,8 @@ import { Wallet } from 'lucide-react';
 // import { getAccountBalance } from '../../utils/api'; // Import your existing function
 import axios from 'axios';
 import { virtualTokensData } from '../../data/tokenData';
+import { useGenesis } from '../../context/GenesisContext';
+import { useAuth } from '../../context/AuthContext';
 
 const PortfolioPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
@@ -14,10 +16,13 @@ const PortfolioPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const {decodedToken} = useAuth(); 
+
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const walletAddress = localStorage.getItem('walletAddress')?.replace(/"/g, '');
+        const walletAddress = decodedToken?.walletAddress ;
 
         console.log('Wallet Address:', walletAddress);
         if (!walletAddress) {
@@ -89,7 +94,7 @@ const PortfolioPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen text-white bg-dark-900">
+    <div className="min-h-screen text-white">
       <div className="container mx-auto px-4 py-8 sm:py-12">
         <div className="flex items-center mb-8">
           <Wallet className="w-6 h-6 sm:w-8 sm:h-8 mr-3 text-primary-400" />
