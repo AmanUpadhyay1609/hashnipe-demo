@@ -1,13 +1,13 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
 import { TokenListPage } from './pages/TokenListPage';
-import { TokenDetailPage } from './pages/TokenDetailPage';
 import { Layout } from './components/layout/Layout';
 import { UserLayout } from './components/layout/UserLayout';
 import { GenesisProvider } from './context/GenesisContext';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
 import PortfolioPage from './components/Portfolio/PortfolioPage';
+import TokenDetailsPage from './pages/TokenDetailsPage';
 
 // App Routes Component
 const AppRoutes = () => {
@@ -29,7 +29,7 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/" element={<TokenListPage />} />
         <Route path="/tokens" element={<TokenListPage />} />
-        <Route path="/tokens/:id" element={<TokenDetailPage />} />
+        <Route path="/tokens/:id" element={<TokenDetailsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
         <Route path="/portfolio" element={<PortfolioPage />} />
       </Routes>

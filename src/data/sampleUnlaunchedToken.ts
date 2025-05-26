@@ -1,0 +1,81 @@
+export const sampleUnlaunchedTokenData = {
+  data: {
+    id: 1029,
+    startsAt: "2025-05-25T08:00:00.000Z",
+    endsAt: "2025-05-26T08:00:00.000Z",
+    status: "STARTED",
+    genesisId: "74",
+    genesisTx: "0xd0f232a3d168acf05be450efb5c6025e54fbb6283d0e621c6f867967e2dcee9b",
+    genesisAddress: "0x2eD15dEF8482F84447f37ca846c72c0CDE504E45",
+    result: null,
+    processedParticipants: "0",
+    createdAt: "2025-05-09T15:03:32.923Z",
+    updatedAt: "2025-05-11T02:01:16.919Z",
+    virtual: {
+      id: 23114,
+      uid: "4cee46c1-88c6-4d7b-a54c-bd4efc454bf2",
+      createdAt: "2025-05-09T15:03:32.489Z",
+      walletAddress: "0xb02809deDC85cca68F4281C0d35D9668EebE4C6F",
+      name: "AInalyst",
+      description: "Backed by 2M+ data points and 19K+ Web3 projects, AInalyst is already live and working.\nIt's not a whitepaper — it's a real, AI-powered product with actual token utility.\n$AIN is used to access, analyze, and distribute data across the ecosystem.",
+      sentientWalletAddress: null,
+      category: "IP MIRROR",
+      role: "INFORMATION",
+      daoAddress: null,
+      tokenAddress: null,
+      virtualId: null,
+      status: "GENESIS",
+      symbol: "AIN",
+      lpAddress: null,
+      veTokenAddress: null,
+      totalValueLocked: null,
+      virtualTokenValue: null,
+      holderCount: null,
+      mcapInVirtual: null,
+      preToken: null,
+      preTokenPair: null,
+      aidesc: null,
+      firstMessage: null,
+      socials: {
+        VERIFIED_LINKS: {
+          TWITTER: "https://x.com/AInalyst_",
+          WEBSITE: "https://ainalyst.xyz/"
+        }
+      },
+      tbaAddress: null,
+      chain: "BASE",
+      mainVirtualId: null,
+      top10HolderPercentage: null,
+      level: null,
+      valueFx: 0,
+      priceChangePercent24h: 0,
+      volume24h: 0,
+      mindshare: null,
+      migrateTokenAddress: null,
+      lpCreatedAt: null,
+      stakingAddress: null,
+      agentStakingContract: null,
+      overview: "# **\\*\\*AInalyst: The AI Intelligence Layer for Web3 Signals and Narratives\\*\\***\n\n#\n\n> **\\*\\*Introduction\\*\\***\n\nAInalyst is an AI-powered platform built to help users make sense of Web3 — faster, clearer, and with less noise. By combining data indexing, social summarization, and behavioral signals, AInalyst connects the dots between what's happening, what people are saying, and what matters most.\n\nOriginally known as Statistr, AInalyst has evolved beyond static research. It is now an intelligence engine built for traders, analysts, and autonomous agents.\n\n***\n\n> **\\*\\*Core Features\\*\\***\n\n[**\\*\\*1. Project, People & Fund Intelligence\\*\\***](https://ainalyst.xyz/directory/fundraising)\n\n\\* Explore a unified directory of top projects, key figures, and investors\n\n\\* Analyze relationships between ventures, teams, and capital flows\n\n\\* Filter by sector, chain, stage, and historical activity\n\n\\---&#x20;\n\n[**\\*\\*2. AI Social Recap\\*\\***](https://social-recap.ainalyst.xyz/)\n\n\\* AI-curated summaries of dozens of daily KOL posts\n\n\\* Capture Web3 narratives without endless scrolling\n\n\\* Identify trending tokens, influencers, and conversation clusters\n\n\\---\n\n[**\\*\\*3. Crypto Observatory\\*\\***](https://ainalyst.xyz/observatory)\n\n\\* Dashboards combining token data, investor trends, and curated news\n\n\\* Visual snapshots of sector dynamics and performance\n\n\\---\n\n<u>**\\*\\*4. Behavioral Pulse Engine\\*\\* \\*(coming soon)\\***</u>\n\n\\* Detect micro-trends and user behavior shifts across Web3 ecosystems\n\n\\* Connect wallet activity with social attention and market relevance\n\n\\---\n\n<u>**\\*\\*5. Advanced Search & Sifter\\*\\***</u>\n\n\\* Ask simple questions and receive structured, contextual answers\n\n\\* Link people, tokens, and ventures seamlessly\n\n\\---\n\n<u>**\\*\\*6. User Dashboard\\*\\***</u>\n\n\\* Save and follow entities, generate custom watchlists\n\n\\* Export research and track recurring themes\n\n<u>**\\*\\*7. Onchain Tracking Farcaster/X User ( Launching early June )**</u>\n\n\\* Track what top KOLs on X and Farcaster are doing — and instantly mirror their actions like minting, buying, or selling\n\n***\n\n> **\\*\\* $AIN Tokenomic**&#x20;\n\n|            &#xA;Category&#xA;            | &#xA;Allocation (%)&#xA; |                  &#xA;Vesting Schedule&#xA;                 |                                   &#xA;Details&#xA;                                   |\n| :--------------------------------------: | :----------------------: | :---------------------------------------------------------: | :-----------------------------------------------------------------------------------: |\n|           &#xA;Public Sale&#xA;          |      &#xA;37.5&#xA;      |             &#xA;Fixed supply – no vesting&#xA;             |                                   &#xA;Default&#xA;                                   |\n|         &#xA;Liquidity Pool&#xA;         |      &#xA;12.5&#xA;      |             &#xA;Fixed supply – no vesting&#xA;             |                                   &#xA;Default&#xA;                                   |\n| Liquidity Incentives ($AIN–$VIRTUAL LPs) |           15.0           |        100% 2-month cliff followed by 180-day unlocks       |             Rewards for liquidity providers supporting AIN–VIRTUAL pools.             |\n|         &#xA;Team & Advisors&#xA;        |      &#xA;12.5&#xA;      | &#xA;100% 12-month cliff followed by immediate unlocks&#xA; |     &#xA;Align long-term incentives with builders and strategic contributors.&#xA;    |\n|       &#xA;Marketing & Growth&#xA;       |      &#xA;10.0&#xA;      |   &#xA;100% 1-month cliff followed by 365-day unlocks&#xA;  |     &#xA;Fuel campaigns, partnerships, user acquisition, and brand building.&#xA;     |\n|            &#xA;Treasury&#xA;            |       &#xA;5.0&#xA;      |  &#xA;100% 3-month cliff followed by immediate unlocks&#xA; |    &#xA;DAO-controlled funds for grants, bounties, reserves, and emergencies.&#xA;    |\n|        &#xA;Virtual Ecosystem&#xA;       |       &#xA;3.0&#xA;      |   &#xA;100% 2-month cliff followed by 180-day unlocks&#xA;  | &#xA;Broader incentives for Virtual yappers, stakers, and campaign contributors.&#xA; |\n|        &#xA;Data Contributors&#xA;       |       &#xA;2.5&#xA;      |   &#xA;100% 1-month cliff followed by 365-day unlocks&#xA;  |  &#xA;Rewards for users contributing data, tagging, and insights into AInalyst.&#xA;  |\n|        &#xA;$VADER Community&#xA;        |       &#xA;1.0&#xA;      |   &#xA;100% 2-month cliff followed by 180-day unlocks&#xA;  |           &#xA;Incentives for $VADER stakers in the Virtual ecosystem.&#xA;           |\n|        &#xA;$VIRGEN Community&#xA;       |       &#xA;1.0&#xA;      |   &#xA;100% 2-month cliff followed by 180-day unlocks&#xA;  |         &#xA;Rewards for Genesis Launch participants staking with Virgen.&#xA;        |",
+      image: {
+        id: 23944,
+        url: "https://s3.ap-southeast-1.amazonaws.com/virtualprotocolcdn/23114_A_Inalyst_fbbabb1dd0.jpeg"
+      }
+    },
+    userResult: {},
+    totalPoints: 15818890,
+    totalVirtuals: 174921.69000000024,
+    totalParticipants: 2717
+  },
+  topSubscribers: [
+    {totalPoints: 505657, totalVirtuals: 566, walletAddress: "0xCf1208c781De49D36b2bcAEA16fE2447E976a100"},
+    {totalPoints: 368505, totalVirtuals: 566, walletAddress: "0xFddC1C93A90462A45Fe1B9E3d1bA60c79a432905"},
+    {totalPoints: 330021, totalVirtuals: 566, walletAddress: "0xDB9f90626b16551810A3493f85CeE01Eb9EaFf63"},
+    {totalPoints: 292286, totalVirtuals: 566, walletAddress: "0xd42F1662854a20Ed43913192Bb3d085679545080"},
+    {totalPoints: 220001, totalVirtuals: 566, walletAddress: "0x3998F134d6aaa2b6a5f723806D00fD2bBBBCE891"},
+    {totalPoints: 220000, totalVirtuals: 566, walletAddress: "0xC32304513fBC519C5E6Ee209A0c9437513c4Fb94"},
+    {totalPoints: 217174, totalVirtuals: 566, walletAddress: "0x33A032b96ecedD937554648F686bd5bE95eE97e2"},
+    {totalPoints: 200000, totalVirtuals: 566, walletAddress: "0xeb2Eb5C68156250C368914761bB8F1208d56AcD0"},
+    {totalPoints: 190000, totalVirtuals: 566, walletAddress: "0x3c02d1784530E6a37B250F454d409b4655A0Cd99"},
+    {totalPoints: 187168, totalVirtuals: 525.38, walletAddress: "0x4228f81583da3595522BbC333Fa0986538C873E7"}
+  ]
+};
