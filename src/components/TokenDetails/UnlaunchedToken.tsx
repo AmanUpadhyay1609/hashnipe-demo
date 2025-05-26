@@ -19,22 +19,22 @@ const UnlaunchedToken: React.FC<UnlaunchedTokenProps> = ({ tokenData }) => {
   return (
     <div className="space-y-6">
       {/* Launch information */}
-      <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
+      <div className="bg-dark-500 rounded-lg p-6 shadow-lg">
         <h2 className="text-xl font-semibold mb-4">Launch Information</h2>
         
         {timeRemaining > 0 ? (
           <div className="mb-6">
-            <p className="text-gray-400 mb-2">Time until launch</p>
+            <p className="text-white mb-2">Time until launch</p>
             <div className="flex space-x-4">
-              <div className="bg-gray-700/50 p-3 rounded-lg text-center min-w-[80px]">
+              <div className="bg-dark-300 p-3 rounded-lg text-center min-w-[80px]">
                 <p className="text-2xl font-bold">{days}</p>
                 <p className="text-xs text-gray-400">Days</p>
               </div>
-              <div className="bg-gray-700/50 p-3 rounded-lg text-center min-w-[80px]">
+              <div className="bg-dark-300 p-3 rounded-lg text-center min-w-[80px]">
                 <p className="text-2xl font-bold">{hours}</p>
                 <p className="text-xs text-gray-400">Hours</p>
               </div>
-              <div className="bg-gray-700/50 p-3 rounded-lg text-center min-w-[80px]">
+              <div className="bg-dark-300 p-3 rounded-lg text-center min-w-[80px]">
                 <p className="text-2xl font-bold">{minutes}</p>
                 <p className="text-xs text-gray-400">Minutes</p>
               </div>
@@ -47,12 +47,12 @@ const UnlaunchedToken: React.FC<UnlaunchedTokenProps> = ({ tokenData }) => {
         )}
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-gray-700/30 p-3 rounded-lg">
+          <div className="bg-dark-300 p-3 rounded-lg">
             <p className="text-sm text-gray-400">Total Points</p>
             <p className="text-lg font-medium">{Number(totalPoints).toLocaleString()}</p>
           </div>
           
-          <div className="bg-gray-700/30 p-3 rounded-lg">
+          <div className="bg-dark-300 p-3 rounded-lg">
             <p className="text-sm text-gray-400">Total VIRTUAL</p>
             <p className="text-lg font-medium">{Number(totalVirtuals).toLocaleString()}</p>
           </div>

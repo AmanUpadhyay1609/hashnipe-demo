@@ -19,8 +19,8 @@ const TopSubscribers: React.FC<TopSubscribersProps> = ({ subscribers }) => {
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-      <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+    <div className="bg-dark-500 rounded-lg shadow-lg overflow-hidden">
+      <div className="p-4 border-b border-dark-300 flex items-center justify-between">
         <div className="flex items-center">
           <Users size={18} className="text-cyan-400 mr-2" />
           <h2 className="text-xl font-semibold">Top Subscribers</h2>
@@ -44,7 +44,7 @@ const TopSubscribers: React.FC<TopSubscribersProps> = ({ subscribers }) => {
             {subscribers.slice(0, 10).map((subscriber, index) => (
               <tr 
                 key={subscriber.walletAddress}
-                className={`border-b border-gray-700/50 ${index < 3 ? 'bg-cyan-900/10' : ''} hover:bg-gray-700/30 transition-colors`}
+                className={`border-b border-gray-700/50 ${index < 3 ? 'bg-dark-300' : ''} hover:bg-gray-700/30 transition-colors`}
               >
                 <td className="px-4 py-3">
                   {index < 3 ? (
