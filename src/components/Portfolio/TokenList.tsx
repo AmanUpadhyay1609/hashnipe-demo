@@ -69,19 +69,21 @@ const TokenList: React.FC<TokenListProps> = ({ tokens, isVirtual = false }) => {
     ];
 
   return (
-    <div className="bg-dark-400 rounded-xl overflow-hidden shadow-xl">
+    <div className="bg-dark-400 rounded-xl overflow-hidden shadow-lg">
       {/* Header */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 p-3 sm:p-4 bg-dark-400  border-b border-dark-300 text-xs sm:text-sm font-medium text-gray-400">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 p-4 bg-dark-400 border-b border-dark-300 text-sm sm:text-base font-medium">
         {headerItems.map((item) => (
           <div 
             key={item.id}
-            className={`flex items-center cursor-pointer hover:text-white ${
+            className={`flex items-center justify-between cursor-pointer group hover:bg-dark-300 rounded-lg px-2 py-1 transition-colors duration-200 ${
               item.id === 'name' ? 'col-span-2 md:col-span-1' : ''
             }`}
             onClick={() => handleSort(item.id)}
           >
-            {item.label}
-            <span className="ml-1">
+            <span className="text-gray-400 group-hover:text-white">
+              {item.label}
+            </span>
+            <span className="ml-2 text-gray-400 group-hover:text-primary-400 transition-colors duration-200">
               {renderSortIcon(item.id)}
             </span>
           </div>
@@ -92,13 +94,25 @@ const TokenList: React.FC<TokenListProps> = ({ tokens, isVirtual = false }) => {
       <div className="divide-y divide-gray-700">
         {getSortedTokens().map((token) => (
           isVirtual ? 
-            <VirtualTokenCard key={token.id} token={token} /> :
-            <TokenCard key={token.token_address} token={token} />
+            <VirtualTokenCard 
+              key={token.id} 
+              token={token} 
+              className="p-4 border-b border-dark-300 last:border-b-0"
+            /> :
+            <TokenCard 
+              key={token.token_address} 
+              token={token} 
+              className="p-4 border-b border-dark-300 last:border-b-0"
+            />
         ))}
         
         {tokens.length === 0 && (
           <div className="p-6 sm:p-8 text-center text-gray-400">
-            No tokens found.
+            <div className="flex flex-col items-center space-y-2">
+              <div className="text-2xl font-bold text-primary-400 mb-2">🔍</div>
+              <h3 className="text-lg font-semibold text-white">No tokens found</h3>
+              <p className="text-gray-400">Your portfolio is empty. Start adding tokens to see them here.</p>
+            </div>
           </div>
         )}
       </div>

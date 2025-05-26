@@ -2,9 +2,10 @@ import React from 'react';
 
 interface VirtualTokenCardProps {
   token: any;
+  className?: string;
 }
 
-const VirtualTokenCard: React.FC<VirtualTokenCardProps> = ({ token }) => {
+const VirtualTokenCard: React.FC<VirtualTokenCardProps> = ({ token, className }) => {
   const getRoleStyle = (role: string) => {
     switch (role) {
       case 'CREATIVE':

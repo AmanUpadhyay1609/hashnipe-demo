@@ -3,9 +3,10 @@ import React from 'react';
 interface ToggleButtonGroupProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  className?: string;
 }
 
-const ToggleButtonGroup: React.FC<ToggleButtonGroupProps> = ({ activeTab, onTabChange }) => {
+const ToggleButtonGroup: React.FC<ToggleButtonGroupProps> = ({ activeTab, onTabChange, className }) => {
   const tabs = [
     { id: 'all', label: 'All Tokens' },
     { id: 'virtual', label: 'Virtual' },
@@ -14,7 +15,7 @@ const ToggleButtonGroup: React.FC<ToggleButtonGroupProps> = ({ activeTab, onTabC
   ];
 
   return (
-    <div className="flex flex-wrap gap-1 sm:gap-2 bg-dark-500 p-1 rounded-lg overflow-x-auto">
+    <div className={`flex flex-wrap gap-1 sm:gap-2 bg-dark-500 p-1 rounded-lg overflow-x-auto ${className || ''}`}>
       {tabs.map((tab) => (
         <button
           key={tab.id}

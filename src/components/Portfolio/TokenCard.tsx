@@ -3,9 +3,10 @@ import { TrendingUp, TrendingDown, Shield } from 'lucide-react';
 
 interface TokenCardProps {
   token: any;
+  className?: string;
 }
 
-const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
+const TokenCard: React.FC<TokenCardProps> = ({ token, className }) => {
   const percentChange = token.usd_price_24hr_percent_change || 0;
   const isPositive = percentChange > 0;
   

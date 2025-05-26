@@ -7,6 +7,7 @@ import { Wallet } from 'lucide-react';
 
 const PortfolioPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
+  const [isLoading, setIsLoading] = useState(false);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -15,36 +16,58 @@ const PortfolioPage: React.FC = () => {
       case 'virtual':
         return <TokenList tokens={virtualTokensData.data} isVirtual />;
       case 'genesis':
-        return <EmptyState 
-          title="Genesis Launches Coming Soon" 
-          description="New token launches will be available here soon." 
-        />;
+        return (
+          <div className="bg-dark-400 rounded-xl p-6 sm:p-8">
+            <div className="flex flex-col items-center">
+              <div className="text-4xl font-bold text-primary-400 mb-4">🚀</div>
+              <h2 className="text-2xl font-bold text-white mb-2">Genesis Launches Coming Soon</h2>
+              <p className="text-gray-400 text-center">New token launches will be available here soon.</p>
+            </div>
+          </div>
+        );
       case 'unlock':
-        return <EmptyState 
-          title="Token Unlock Schedule" 
-          description="Token unlock information will be displayed here." 
-        />;
+        return (
+          <div className="bg-dark-400 rounded-xl p-6 sm:p-8">
+            <div className="flex flex-col items-center">
+              <div className="text-4xl font-bold text-primary-400 mb-4">⏰</div>
+              <h2 className="text-2xl font-bold text-white mb-2">Token Unlock Schedule</h2>
+              <p className="text-gray-400 text-center">Token unlock information will be displayed here.</p>
+            </div>
+          </div>
+        );
       default:
         return <TokenList tokens={allTokensData.result} />;
     }
   };
 
   return (
-    <div className="min-h-screen text-white" >
-      <div className="container mx-auto px-4 py-4 sm:py-8">
-        <div className="flex items-center mb-4 sm:mb-6">
-          <Wallet className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-primary-400" />
-          <h1 className="text-xl sm:text-2xl font-bold text-primary-400">Portfolio</h1>
+    <div className="min-h-screen text-white bg-dark-900">
+      <div className="container mx-auto px-4 py-8 sm:py-12">
+        <div className="flex items-center mb-8">
+          <Wallet className="w-6 h-6 sm:w-8 sm:h-8 mr-3 text-primary-400" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary-400">Portfolio</h1>
         </div>
         
-        <div className="mb-4 sm:mb-8">
+        <div className="mb-8">
           <ToggleButtonGroup 
             activeTab={activeTab} 
             onTabChange={setActiveTab} 
+            className="border-b border-dark-300"
           />
         </div>
         
-        {renderContent()}
+        {isLoading ? (
+          <div className="bg-dark-400 rounded-xl p-6 sm:p-8">
+            <div className="animate-pulse">
+              <div className="h-4 bg-primary-400/10 rounded w-32 mb-4"></div>
+              <div className="h-4 bg-primary-400/10 rounded w-24"></div>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {renderContent()}
+          </div>
+        )}
       </div>
     </div>
   );

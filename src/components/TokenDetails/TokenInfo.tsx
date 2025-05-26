@@ -30,7 +30,7 @@ const TokenInfo: React.FC<TokenInfoProps> = ({ tokenData, isLaunched }) => {
     } = tokenData;
     
     return (
-      <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
+      <div className="bg-dark-500 rounded-lg p-6 shadow-lg">
         <div className="flex items-center mb-4">
           <img 
             src={tokenLogoUrl} 
@@ -40,7 +40,7 @@ const TokenInfo: React.FC<TokenInfoProps> = ({ tokenData, isLaunched }) => {
           <div>
             <h1 className="text-2xl font-bold">{name}</h1>
             <div className="flex items-center space-x-2">
-              <span className="text-sm bg-cyan-900/30 text-cyan-400 px-2 py-0.5 rounded">
+              <span className="text-sm bg-darj-500 text-cyan-400 px-2 py-0.5 rounded">
                 {tokenSymbol}
               </span>
               <a 
@@ -57,26 +57,26 @@ const TokenInfo: React.FC<TokenInfoProps> = ({ tokenData, isLaunched }) => {
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          <div className="bg-gray-700/30 p-3 rounded-lg">
+          <div className="bg-dark-300 p-3 rounded-lg">
             <p className="text-sm text-gray-400">Price</p>
             <p className="text-xl font-medium">${parseFloat(price).toFixed(8)}</p>
           </div>
           
-          <div className="bg-gray-700/30 p-3 rounded-lg">
+          <div className="bg-dark-300 p-3 rounded-lg">
             <p className="text-sm text-gray-400">24h Change</p>
             <p className="text-xl font-medium">
               {renderPriceChange(price_change_percentage.h24)}
             </p>
           </div>
           
-          <div className="bg-gray-700/30 p-3 rounded-lg">
+          <div className="bg-dark-300  p-3 rounded-lg">
             <p className="text-sm text-gray-400">Market Cap</p>
             <p className="text-xl font-medium">
               ${Number(marketCap).toLocaleString()}
             </p>
           </div>
           
-          <div className="bg-gray-700/30 p-3 rounded-lg">
+          <div className="bg-dark-300 p-3 rounded-lg">
             <p className="text-sm text-gray-400">Holders</p>
             <p className="text-xl font-medium">{Number(holders).toLocaleString()}</p>
           </div>
@@ -87,7 +87,7 @@ const TokenInfo: React.FC<TokenInfoProps> = ({ tokenData, isLaunched }) => {
     const { virtual } = tokenData.data;
     
     return (
-      <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
+      <div className="bg-dark-500 rounded-lg p-6 shadow-lg">
         <div className="flex items-center mb-4">
           {virtual.image?.url ? (
             <img 
@@ -114,22 +114,22 @@ const TokenInfo: React.FC<TokenInfoProps> = ({ tokenData, isLaunched }) => {
         </div>
         
         <div className="mt-4 grid grid-cols-2 gap-4">
-          <div className="bg-gray-700/30 p-3 rounded-lg">
+          <div className="bg-dark-300 p-3 rounded-lg">
             <p className="text-sm text-gray-400">Chain</p>
             <p className="font-medium">{virtual.chain || 'BASE'}</p>
           </div>
           
-          <div className="bg-gray-700/30 p-3 rounded-lg">
+          <div className="bg-dark-300 p-3 rounded-lg">
             <p className="text-sm text-gray-400">Status</p>
             <p className="font-medium">{tokenData.data.status}</p>
           </div>
           
-          <div className="bg-gray-700/30 p-3 rounded-lg">
+          <div className="bg-dark-300 p-3 rounded-lg">
             <p className="text-sm text-gray-400">Total Participants</p>
             <p className="font-medium">{tokenData.data.totalParticipants}</p>
           </div>
           
-          <div className="bg-gray-700/30 p-3 rounded-lg">
+          <div className="bg-dark-300 p-3 rounded-lg">
             <p className="text-sm text-gray-400">Launch Date</p>
             <p className="font-medium">
               {new Date(tokenData.data.startsAt).toLocaleDateString()}

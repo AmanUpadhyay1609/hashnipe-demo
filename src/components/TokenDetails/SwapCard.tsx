@@ -56,7 +56,7 @@ const SwapCard: React.FC<SwapCardProps> = ({ tokenData, isLaunched }) => {
   };
   
   return (
-    <div className="bg-gray-800 rounded-lg shadow-lg p-4">
+    <div className="bg-dark-500 border-dark-300 rounded-2xl shadow-lg p-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Swap</h2>
         <button className="text-gray-400 hover:text-white transition-colors">
@@ -65,7 +65,7 @@ const SwapCard: React.FC<SwapCardProps> = ({ tokenData, isLaunched }) => {
       </div>
       
       {/* From token */}
-      <div className="bg-gray-700/50 rounded-lg p-3 mb-2">
+      <div className="bg-dark-300 rounded-lg p-3 mb-2">
         <div className="flex justify-between text-sm text-gray-400 mb-2">
           <span>From</span>
           <span>Balance: {fromToken.balance}</span>
@@ -80,7 +80,7 @@ const SwapCard: React.FC<SwapCardProps> = ({ tokenData, isLaunched }) => {
             onChange={handleFromAmountChange}
           />
           
-          <div className="bg-gray-700 rounded-lg px-3 py-1 flex items-center ml-2">
+          <div className="bg-dark-300   rounded-lg px-3 py-1 flex items-center ml-2">
             <span className="font-medium">{fromToken.symbol}</span>
           </div>
         </div>
@@ -97,7 +97,7 @@ const SwapCard: React.FC<SwapCardProps> = ({ tokenData, isLaunched }) => {
       </div>
       
       {/* To token */}
-      <div className="bg-gray-700/50 rounded-lg p-3 mb-4">
+      <div className="bg-dark-300  rounded-lg p-3 mb-4">
         <div className="flex justify-between text-sm text-gray-400 mb-2">
           <span>To</span>
           <span>Balance: {toToken.balance}</span>
@@ -123,11 +123,11 @@ const SwapCard: React.FC<SwapCardProps> = ({ tokenData, isLaunched }) => {
       {isLaunched && fromAmount && (
         <div className="bg-gray-700/30 rounded-lg p-3 mb-4 text-sm">
           <div className="flex justify-between mb-1">
-            <span className="text-gray-400">Price</span>
+            <span className="text-white">Price</span>
             <span>1 {fromToken.symbol} ≈ {conversionRate.toFixed(6)} {toToken.symbol}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-400">Minimum received</span>
+            <span className="text-white">Minimum received</span>
             <span>{(parseFloat(toAmount) * 0.99).toFixed(6)} {toToken.symbol}</span>
           </div>
         </div>
@@ -135,10 +135,10 @@ const SwapCard: React.FC<SwapCardProps> = ({ tokenData, isLaunched }) => {
       
       {/* Action button */}
       <button 
-        className={`w-full py-3 rounded-lg font-medium text-center ${
+        className={`w-full py-3 bg-primary-500  rounded-lg font-medium text-center ${
           isLaunched 
             ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500' 
-            : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+            : 'bg-gray-700 text-white  cursor-not-allowed'
         }`}
         disabled={!isLaunched || !fromAmount || fromAmount === '0'}
       >
@@ -148,7 +148,7 @@ const SwapCard: React.FC<SwapCardProps> = ({ tokenData, isLaunched }) => {
       
       {/* Disclaimer */}
       {isLaunched && (
-        <div className="text-xs text-center mt-3 text-gray-400">
+        <div className="text-xs text-center mt-3 text-white">
           Price is refreshed every 15 seconds
           <button className="ml-1 text-cyan-400 hover:text-cyan-300 inline-flex items-center">
             <RefreshCw size={12} className="mr-1" /> Refresh
@@ -157,7 +157,7 @@ const SwapCard: React.FC<SwapCardProps> = ({ tokenData, isLaunched }) => {
       )}
       
       {!isLaunched && (
-        <div className="text-xs text-center mt-3 text-gray-400">
+        <div className="text-xs text-center mt-3 text-white">
           Trading will be available after token launch
         </div>
       )}

@@ -10,7 +10,7 @@ const LaunchedToken: React.FC<LaunchedTokenProps> = ({ tokenData }) => {
   return (
     <div className="space-y-6">
       {/* Price chart */}
-      <div className="bg-gray-800 rounded-lg p-4 shadow-lg">
+      <div className="bg-dark-500 rounded-lg p-4 shadow-lg">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Price Chart</h2>
           <div className="flex space-x-2">

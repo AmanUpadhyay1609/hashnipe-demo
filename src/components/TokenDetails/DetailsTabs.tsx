@@ -19,8 +19,8 @@ const DetailsTabs: React.FC<DetailsTabsProps> = ({ activeTab, setActiveTab, toke
   ];
   
   return (
-    <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-      <div className="border-b border-gray-700">
+    <div className="bg-dark-500 rounded-lg shadow-lg overflow-hidden">
+      <div className="border-b border-dark-500">
         <div className="flex overflow-x-auto scrollbar-hide">
           {tabs.map(tab => (
             <button
@@ -28,7 +28,7 @@ const DetailsTabs: React.FC<DetailsTabsProps> = ({ activeTab, setActiveTab, toke
               className={`px-4 py-3 font-medium text-sm whitespace-nowrap transition-colors
                 ${activeTab === tab.id 
                   ? 'text-cyan-400 border-b-2 border-cyan-400' 
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700/30'
+                  : 'text-whitehover:bg-gray-700/30'
                 }`}
               onClick={() => setActiveTab(tab.id)}
             >
