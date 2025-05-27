@@ -1,50 +1,23 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useGenesis, GenesisLaunch, StatusFilter } from '../context/GenesisContext';
 import { Zap, Clock, ArrowRight, ChevronRight, ChevronLeft, DollarSign } from 'lucide-react';
-// import { useWallet } from '../context/WalletContext';
+import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { SnipeForm } from '../components/SnipeForm';
-import { PieChart, Pie, Cell, Tooltip } from 'recharts';
-import type { TooltipProps } from 'recharts';
+import { Cell, Pie, PieChart, Tooltip, type TooltipProps } from 'recharts';
 import { BuySellForm } from '../components/BuySellForm';
+import { TokenomicsPieChart } from '../components/TokenDetails/charts/PieChart';
+import { ChevronDown } from '../components/ui/ChevronDown';
+import { GhostForm } from '../components/ui/GhostForm';
+import { CopyAddress } from '../components/ui/copyComponent';
+
 
 // Helper for pie chart colors
 const PIE_COLORS = [
   '#0ea5e9', '#14b8a6', '#f59e0b', '#ef4444', '#a78bfa', '#f472b6', '#34d399', '#f87171', '#38bdf8', '#fbbf24', '#6366f1', '#eab308'
 ];
 
-// Tokenomics PieChart component
-const TokenomicsPieChart = ({ tokenomics }) => {
-  // Each tokenomics item is a slice, label by id or type
-  const data = tokenomics.map((t) => ({
-    name: t.releases[0]?.type || `#${t.id}`,
-    value: t.bips,
-    isLocked: t.isLocked,
-    release: t.releases[0],
-    id: t.id
-  }));
-  return (
-    <PieChart width={32} height={32}>
-      <Pie
-        data={data}
-        dataKey="value"
-        nameKey="name"
-        cx="50%"
-        cy="50%"
-        outerRadius={16}
-        innerRadius={8}
-        paddingAngle={2}
-        stroke="#22223b"
-        strokeWidth={1}
-      >
-        {data.map((entry, idx) => (
-          <Cell key={`cell-${idx}`} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
-        ))}
-      </Pie>
-    </PieChart>
-  );
-};
 
 const tokenomicsCache = {};
 const TokenomicsPieChartPopup = ({ virtualId, tokenName, onClose }) => {
@@ -168,6 +141,8 @@ export const TokenListPage: React.FC = () => {
 
   const [selectedProject, setSelectedProject] = useState<GenesisLaunch | null>();
   const [isSnipeFormOpen, setIsSnipeFormOpen] = useState(false);
+  const [isFormLoading, setIsFormLoading] = useState(false);
+
   const [showTokenomicsPopupIdx, setShowTokenomicsPopupIdx] = useState<number | null>(null);
   const tokenomicsAnchorRefs = useRef<(HTMLDivElement | null)[]>([]);
   const tokenomicsHoverTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -213,29 +188,36 @@ export const TokenListPage: React.FC = () => {
       return 0;
     });
 
-  // Set initial project when data is loaded
+  // Close forms if selected project is no longer in the list
   useEffect(() => {
-    // Only set the initial project if nothing is selected and this is the first load
-    if (
-      sortedProjects.length > 0 &&
-      !selectedProject &&
-      !selectedTradeProject &&
-      !isSnipeFormOpen &&
-      !isTradeFormOpen
-    ) {
-      const initialProject = sortedProjects[0];
-      const isEnded = initialProject.status === 'FINALIZED' || initialProject.status === 'FAILED';
-      if (isEnded) {
-        setSelectedTradeProject(initialProject);
-        setIsTradeFormOpen(true);
-        setIsSnipeFormOpen(false);
-      } else {
-        setSelectedProject(initialProject);
-        setIsSnipeFormOpen(true);
-        setIsTradeFormOpen(false);
-      }
+    if (selectedProject && !sortedProjects.includes(selectedProject)) {
+      setSelectedProject(null);
+      setIsSnipeFormOpen(false);
     }
-  }, [sortedProjects, selectedProject, selectedTradeProject, isSnipeFormOpen, isTradeFormOpen]);
+
+    if (selectedTradeProject && !sortedProjects.includes(selectedTradeProject)) {
+      setSelectedTradeProject(null);
+      setIsTradeFormOpen(false);
+    }
+  }, [sortedProjects, selectedProject, selectedTradeProject]);
+  // Set initial project when data is loaded or filter changes
+  useEffect(() => {
+    if (sortedProjects.length === 0) return;
+    const timeout = setTimeout(() => {
+      if (currentFilter === 'ended') {
+        setSelectedTradeProject(sortedProjects[0]);
+        setIsTradeFormOpen(true);
+      } else {
+        setSelectedProject(sortedProjects[0]);
+        setIsSnipeFormOpen(true);
+      }
+      setIsFormLoading(false); // done loading
+    }, 300); // adjust as needed
+
+    return () => clearTimeout(timeout);
+  }, [sortedProjects, currentFilter]);
+
+
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -285,22 +267,18 @@ export const TokenListPage: React.FC = () => {
     }
   };
 
-  const handleSnipe = async (project: GenesisLaunch) => {
-    const isEnded = project.status === 'FINALIZED' || project.status === 'FAILED';
+  const handleSnipe = (project: GenesisLaunch) => {
+    setSelectedProject(project);
+    setIsSnipeFormOpen(true);
+    setSelectedTradeProject(null);
+    setIsTradeFormOpen(false);
+  };
 
-    if (isEnded) {
-      // For ended tokens, show BuySellForm
-      setSelectedTradeProject(project);
-      setIsTradeFormOpen(true);
-      setSelectedProject(null);
-      setIsSnipeFormOpen(false);
-    } else {
-      // For all other tokens, show SnipeForm
-      setSelectedProject(project);
-      setIsSnipeFormOpen(true);
-      setSelectedTradeProject(null);
-      setIsTradeFormOpen(false);
-    }
+  const handleTrade = (project: GenesisLaunch) => {
+    setSelectedTradeProject(project);
+    setIsTradeFormOpen(true);
+    setSelectedProject(null);
+    setIsSnipeFormOpen(false);
   };
 
   const handleSnipeSubmit = async (amount: number) => {
@@ -309,15 +287,6 @@ export const TokenListPage: React.FC = () => {
       console.log('Sniping project:', selectedProject.virtual.name, 'Amount:', amount);
       // You would typically call your snipe function here
     }
-  };
-
-  const handleTrade = async (project: GenesisLaunch) => {
-    // Always set the new project and open the trade form
-    setSelectedTradeProject(project);
-    setIsTradeFormOpen(true);
-    // Close the snipe form if it's open
-    setSelectedProject(null);
-    setIsSnipeFormOpen(false);
   };
 
   const handleSubscribe = async (project: GenesisLaunch) => {
@@ -342,6 +311,8 @@ export const TokenListPage: React.FC = () => {
                   <button
                     key={option.value}
                     onClick={() => {
+                      if (currentFilter === option.value) return
+                      setIsFormLoading(true);
                       setCurrentFilter(option.value as StatusFilter);
                       setCurrentPage(1);
                       setSelectedProject(null);
@@ -426,7 +397,7 @@ export const TokenListPage: React.FC = () => {
                           {/* Desktop View */}
                           <div className="hidden md:grid grid-cols-9 gap-2 items-center">
                             {/* Token */}
-                            <div className="col-span-3 flex items-center space-x-3">
+                            <div className="col-span-3 flex items-center space-x-3 min-w-[260px] w-[320px]">
                               <Link to={`/tokens/${project.id}`} className="w-10 h-10 rounded-full overflow-hidden bg-dark-300 flex-shrink-0 ring-2 ring-dark-200 hover:ring-primary-500 transition-all">
                                 {project.virtual.image ? (
                                   <img
@@ -440,13 +411,17 @@ export const TokenListPage: React.FC = () => {
                                   </div>
                                 )}
                               </Link>
-                              <div className="flex flex-col">
-                                <Link to={`/tokens/${project.id}`} className="font-medium text-white hover:text-primary-400 transition-colors">
-                                  {project.virtual.name}
-                                </Link>
+                              <div className="flex flex-col min-w-0">
+                                <div className='flex'>
+                                  <Link to={`/tokens/${project.id}`} className="font-medium text-white hover:text-primary-400 transition-colors truncate">
+                                    {project.virtual.name}
+                                  </Link>
+                                  <CopyAddress address={project.genesisAddress} />
+                                </div>
+
                                 <div className="flex items-center space-x-2">
                                   <span className="text-xs text-primary-400">${project.virtual.symbol}</span>
-                                  <div className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(project.status)}`}>
+                                  <div className={`px-2 py-px-1 rounded-full text-xs font-medium border ${getStatusColor(project.status)}`}>
                                     {getStatusIcon(project.status)}
                                   </div>
                                 </div>
@@ -454,7 +429,7 @@ export const TokenListPage: React.FC = () => {
                             </div>
 
                             {/* Score */}
-                            <div className="col-span-1 text-center">
+                            <div className="col-span-1 text-center w-[70px] min-w-[70px]">
                               <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${score >= 70
                                 ? 'text-success-400 bg-success-500/10 border border-success-500/30'
                                 : score >= 50
@@ -466,18 +441,54 @@ export const TokenListPage: React.FC = () => {
                             </div>
 
                             {/* Participants */}
-                            <div className="col-span-1 text-center text-light-300">
+                            <div className="col-span-1 text-center text-light-300 w-[90px] min-w-[90px]">
                               {project.totalParticipants.toLocaleString()}
                             </div>
-
                             {/* Total VIRTUAL */}
-                            <div className="col-span-1 text-center text-light-300">
-                              {project.totalVirtuals.toLocaleString()}
+                            <div className="col-span-1 text-center w-[110px] min-w-[110px]">
+                              <div className="text-light-300">
+                                {project.totalVirtuals > 0 ? project.totalVirtuals.toLocaleString() : '-'}
+                              </div>
+                              {project.totalVirtuals > 0 && (
+                                <div className="flex flex-col gap-0.5">
+                                  <div className={`text-xs font-medium ${(project.totalVirtuals / 42425) * 100 >= 100
+                                    ? 'text-success-400'
+                                    : 'text-warning-400'
+                                    }`}>
+                                    {((project.totalVirtuals / 42425) * 100).toFixed(1)}%
+                                  </div>
+                                  {(project.totalVirtuals / 42425) * 100 >= 100 ? (
+                                    <div className="text-[11px] text-success-400 font-medium">
+                                      Over Subscribed
+                                    </div>
+                                  ) : (
+                                    <div className="text-[11px] text-warning-400 font-medium flex items-center justify-center gap-1">
+                                      <span>{(42425 - project.totalVirtuals).toLocaleString()}</span>
+                                      <span>to go</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Optional: Add progress bar */}
+                              {project.totalVirtuals > 0 && (
+                                <div className="mt-1 w-full h-1 bg-dark-300 rounded-full overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full transition-all duration-500 ${(project.totalVirtuals / 42425) * 100 >= 100
+                                      ? 'bg-success-400'
+                                      : 'bg-warning-400'
+                                      }`}
+                                    style={{
+                                      width: `${Math.min((project.totalVirtuals / 42425) * 100, 100)}%`
+                                    }}
+                                  />
+                                </div>
+                              )}
                             </div>
 
                             {/* Tokenomics */}
                             <div
-                              className="col-span-1 flex justify-center items-center relative min-w-[48px] h-8"
+                              className="col-span-1 flex justify-center items-center relative min-w-[60px] h-8"
                               ref={el => tokenomicsAnchorRefs.current[sortedProjects.indexOf(project)] = el}
                               onMouseEnter={() => {
                                 if (tokenomicsHoverTimeout.current) clearTimeout(tokenomicsHoverTimeout.current);
@@ -489,7 +500,7 @@ export const TokenListPage: React.FC = () => {
                                 if (tokenomicsHoverTimeout.current) clearTimeout(tokenomicsHoverTimeout.current);
                                 setShowTokenomicsPopupIdx(null);
                               }}
-                              style={{ minWidth: 48, height: 32 }}
+                              style={{ minWidth: 60, height: 32 }}
                             >
                               <TokenomicsPieChart tokenomics={project.virtual.tokenomics ?? []} />
                               {showTokenomicsPopupIdx === sortedProjects.indexOf(project) && (
@@ -502,12 +513,12 @@ export const TokenListPage: React.FC = () => {
                             </div>
 
                             {/* Time Remaining */}
-                            <div className="col-span-1 text-right text-light-300">
+                            <div className="col-span-1 text-right text-light-300 w-[120px] min-w-[120px]">
                               {isEnded ? 'Ended' : timeRemaining}
                             </div>
 
                             {/* Actions */}
-                            <div className="col-span-1 flex justify-end items-center space-x-1">
+                            <div className="col-span-1 flex justify-end items-center space-x-1 w-[120px] min-w-[120px]">
                               {isActive && (
                                 <>
                                   <button
@@ -517,24 +528,10 @@ export const TokenListPage: React.FC = () => {
                                   >
                                     <Zap size={16} />
                                   </button>
-                                  <button
-                                    onClick={() => handleSubscribe(project)}
-                                    className="p-1.5 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
-                                    title="Subscribe"
-                                  >
-                                    <Clock size={16} />
-                                  </button>
                                 </>
                               )}
                               {isUpcoming && (
                                 <>
-                                  <button
-                                    onClick={() => handleSnipe(project)}
-                                    className="p-1.5 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
-                                    title="Snipe at launch"
-                                  >
-                                    <Zap size={16} />
-                                  </button>
                                   <button
                                     onClick={() => handleSubscribe(project)}
                                     className="p-1.5 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
@@ -562,7 +559,6 @@ export const TokenListPage: React.FC = () => {
                               </Link>
                             </div>
                           </div>
-
                           {/* Mobile View */}
                           <div className="md:hidden">
                             <div className="flex items-center justify-between mb-3">
@@ -723,26 +719,37 @@ export const TokenListPage: React.FC = () => {
             )}
           </div>
 
-          {selectedProject && (
-            <div className="w-full lg:w-96 lg:sticky lg:top-6 self-start">
-              <SnipeForm
-                project={selectedProject}
-                isOpen={isSnipeFormOpen}
-                onClose={() => { }}
-                onSnipe={handleSnipeSubmit}
-              />
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+            {isFormLoading ? (
+              <GhostForm />
+            ) : (selectedProject || selectedTradeProject) && (
+              <motion.div
+                key={selectedTradeProject?.id || selectedProject?.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full lg:w-96 lg:sticky lg:top-6 self-start"
+              >
+                {selectedTradeProject ? (
+                  <BuySellForm
+                    project={selectedTradeProject}
+                    isOpen={isTradeFormOpen}
+                    onClose={() => { }}
+                  />
+                ) : (
+                  <SnipeForm
+                    project={selectedProject!}
+                    isOpen={isSnipeFormOpen}
+                    onClose={() => { }}
+                    onSnipe={handleSnipeSubmit}
+                  />
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {selectedTradeProject && (
-            <div className="w-full lg:w-96 lg:sticky lg:top-6 self-start">
-              <BuySellForm
-                project={selectedTradeProject}
-                isOpen={isTradeFormOpen}
-                onClose={() => { }}
-              />
-            </div>
-          )}
+
         </div>
       </div>
     </div>
@@ -750,19 +757,3 @@ export const TokenListPage: React.FC = () => {
 };
 
 // Helper component remains unchanged
-const ChevronDown = ({ size, className }: { size: number, className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="m6 9 6 6 6-6" />
-  </svg>
-);

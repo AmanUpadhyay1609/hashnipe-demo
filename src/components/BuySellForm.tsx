@@ -8,7 +8,7 @@ interface BuySellFormProps {
     onClose: () => void;
 }
 
-export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClose }) => {
+export const BuySellForm: React.FC<any> = ({ project, isOpen, onClose }) => {
     const [amount, setAmount] = useState<string>('');
     const [token, setToken] = useState<string>('BASE_ETH');
     const [isBuying, setIsBuying] = useState<boolean>(true);
