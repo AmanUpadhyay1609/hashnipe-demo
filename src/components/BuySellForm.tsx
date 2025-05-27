@@ -10,21 +10,50 @@ interface BuySellFormProps {
 
 export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClose }) => {
     const [amount, setAmount] = useState<string>('');
-    const [token, setToken] = useState<string>('ETH');
+    const [token, setToken] = useState<string>('BASE_ETH');
     const [isBuying, setIsBuying] = useState<boolean>(true);
+    const [showTokenDropdown, setShowTokenDropdown] = useState(false);
 
-    const handleTokenChange = (newToken: string) => {
-        if (newToken === 'SELL') {
-            setIsBuying(false);
-            setToken('ETH');
-        } else {
-            setToken(newToken);
-        }
-        onClose();
+    //Replace with actual token data or fetch from an API
+    const tokens = [
+        {
+            decimals: '6',
+            tokenContractAddress: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+            tokenLogoUrl: 'https://static.okx.com/cdn/web3/currency/token/small/637-0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b-1?v=1742202380789',
+            tokenName: 'usdc',
+            tokenSymbol: 'USDC'
+        },
+        {
+            decimals: '18',
+            tokenContractAddress: '0x50c5725949a6f0c72e6c4a641f24049a917db0cb',
+            tokenLogoUrl: 'https://static.okx.com/cdn/web3/currency/token/small/8453-0x50c5725949a6f0c72e6c4a641f24049a917db0cb-97?v=1748278077008',
+            tokenName: 'Dai Stablecoin',
+            tokenSymbol: 'DAI'
+        },
+        {
+            decimals: '18',
+            tokenContractAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+            tokenLogoUrl: 'https://static.okx.com/cdn/wallet/logo/base_20900.png',
+            tokenName: 'Base',
+            tokenSymbol: 'BASE_ETH'
+        },
+        {
+            decimals: '18',
+            tokenContractAddress: '0x4200000000000000000000000000000000000006',
+            tokenLogoUrl: 'https://static.okx.com/cdn/wallet/logo/WETH-0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.png',
+            tokenName: 'Wrapped Ether',
+            tokenSymbol: 'WETH'
+        },
+    ];
+
+    const selectedToken = tokens.find(t => t.tokenSymbol === token);
+
+    const handleTokenSelect = (tokenSymbol: string) => {
+        setToken(tokenSymbol);
+        setShowTokenDropdown(false);
     };
 
     const handleTrade = () => {
-        // Implement trade logic here
         console.log(`${isBuying ? 'Buying' : 'Selling'} ${project.virtual.name} with ${amount} ${token}`);
     };
 
@@ -32,7 +61,6 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
 
     return (
         <div className="bg-dark-500 rounded-2xl border border-dark-300 shadow-xl h-fit">
-            {/* Header with Token Info and Close Button */}
             <div className="p-4 border-b border-dark-300">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
@@ -54,13 +82,9 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
             </div>
 
             <div className="p-4 space-y-4">
-                {/* Buy/Sell Toggle */}
                 <div className="flex gap-2 bg-dark-400 p-1 rounded-lg">
                     <button
-                        onClick={() => {
-                            setIsBuying(true);
-                            onClose();
-                        }}
+                        onClick={() => setIsBuying(true)}
                         className={`flex-1 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center justify-center space-x-2
                             ${isBuying
                                 ? 'bg-success-500 text-white shadow-lg shadow-success-500/20'
@@ -71,10 +95,7 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                         <span>Buy</span>
                     </button>
                     <button
-                        onClick={() => {
-                            setIsBuying(false);
-                            onClose();
-                        }}
+                        onClick={() => setIsBuying(false)}
                         className={`flex-1 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center justify-center space-x-2
                             ${!isBuying
                                 ? 'bg-error-500 text-white shadow-lg shadow-error-500/20'
@@ -86,7 +107,6 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                     </button>
                 </div>
 
-                {/* Amount Input */}
                 <div className="space-y-2">
                     <div className="flex justify-between items-center">
                         <label className="text-sm text-light-400">Amount</label>
@@ -100,23 +120,55 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                         <input
                             type="number"
                             value={amount}
-                            onChange={(e) => {
-                                setAmount(e.target.value);
-                                onClose();
-                            }}
+                            onChange={(e) => setAmount(e.target.value)}
                             placeholder="0.0"
                             className="w-full bg-transparent text-white text-lg focus:outline-none"
                         />
                         {isBuying ? (
-                            <select
-                                value={token}
-                                onChange={(e) => handleTokenChange(e.target.value)}
-                                className="bg-dark-300 text-white px-3 py-1 rounded-md focus:outline-none"
-                            >
-                                <option value="ETH">ETH</option>
-                                <option value="USDC">USDC</option>
-                                <option value="SELL">SELL</option>
-                            </select>
+                            <div className="relative">
+                                <button
+                                    onClick={() => setShowTokenDropdown(!showTokenDropdown)}
+                                    className="bg-dark-300 text-white px-3 py-1 rounded-md focus:outline-none flex items-center space-x-2"
+                                >
+                                    {selectedToken && (
+                                        <>
+                                            <img
+                                                src={selectedToken.tokenLogoUrl}
+                                                alt={selectedToken.tokenSymbol}
+                                                className="w-5 h-5 rounded-full"
+                                            />
+                                            <span>{selectedToken.tokenSymbol}</span>
+                                        </>
+                                    )}
+                                </button>
+                                {showTokenDropdown && (
+                                    <div className="absolute right-0 mt-2 w-48 bg-dark-500 rounded-lg border border-dark-300 shadow-xl z-50">
+                                        <div className="p-2 max-h-60 overflow-y-auto">
+                                            {tokens.map((token) => (
+                                                <div
+                                                    key={token.tokenContractAddress}
+                                                    onClick={() => handleTokenSelect(token.tokenSymbol)}
+                                                    className="flex items-center space-x-3 p-2 hover:bg-dark-400 rounded-md cursor-pointer"
+                                                >
+                                                    <img
+                                                        src={token.tokenLogoUrl}
+                                                        alt={token.tokenSymbol}
+                                                        className="w-6 h-6 rounded-full"
+                                                    />
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-medium text-white">
+                                                            {token.tokenSymbol}
+                                                        </span>
+                                                        <span className="text-xs text-light-400">
+                                                            {token.tokenName}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         ) : (
                             <div className="bg-dark-300 text-white px-3 py-1 rounded-md flex items-center space-x-2">
                                 <img
@@ -130,7 +182,6 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                     </div>
                 </div>
 
-                {/* Price Impact and Slippage */}
                 <div className="bg-dark-400/60 rounded-lg p-3 space-y-2">
                     <div className="flex justify-between text-sm">
                         <span className="text-light-400">Price Impact</span>
@@ -152,7 +203,6 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                     )}
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex gap-2 mt-4">
                     <button
                         onClick={handleTrade}
@@ -167,7 +217,6 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                     </button>
                 </div>
 
-                {/* Additional Info */}
                 <div className="bg-dark-400/60 rounded-lg p-3 text-sm text-light-400">
                     <div className="flex items-center space-x-2 mb-2">
                         <Info size={14} />
@@ -181,4 +230,4 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
             </div>
         </div>
     );
-}; 
+};
