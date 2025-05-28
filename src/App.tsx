@@ -8,6 +8,7 @@ import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
 import PortfolioPage from './components/Portfolio/PortfolioPage';
 import TokenDetailsPage from './pages/TokenDetailsPage';
+import Tokenpage from './pages/Tokenpage';
 
 // App Routes Component
 const AppRoutes = () => {
@@ -29,6 +30,7 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/" element={<TokenListPage />} />
         <Route path="/tokens" element={<TokenListPage />} />
+        <Route path="/Tokenpage" element={<Tokenpage />} />
         <Route path="/tokens/:id" element={<TokenDetailsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
         <Route path="/portfolio" element={<PortfolioPage />} />
