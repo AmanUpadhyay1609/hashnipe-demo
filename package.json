@@ -12,6 +12,7 @@
   "dependencies": {
     "@coreui/icons": "^3.0.1",
     "@coreui/icons-react": "^2.3.0",
+    "@reduxjs/toolkit": "^2.8.2",
     "@tanstack/react-query": "^5.24.1",
     "@types/js-cookie": "^3.0.6",
     "axios": "^1.6.7",
@@ -25,6 +26,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^6.22.1",
     "recharts": "^2.15.3",
     "viem": "^2.7.15",
