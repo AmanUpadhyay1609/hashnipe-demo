@@ -9,7 +9,6 @@ import { Cell, Pie, PieChart, Tooltip, type TooltipProps } from 'recharts';
 import { BuySellForm } from '../components/BuySellForm';
 import { TokenomicsPieChart } from '../components/TokenDetails/charts/PieChart';
 import { ChevronDown } from '../components/ui/ChevronDown';
-import { GhostForm } from '../components/ui/GhostForm';
 import { CopyAddress } from '../components/ui/copyComponent';
 
 
@@ -139,17 +138,15 @@ export const TokenListPage: React.FC = () => {
 
   // const { address, connect, isConnecting } = useWallet();
 
-  const [selectedProject, setSelectedProject] = useState<GenesisLaunch | null>();
-  const [isSnipeFormOpen, setIsSnipeFormOpen] = useState(false);
-  const [isFormLoading, setIsFormLoading] = useState(false);
-
+  // Single source of truth for which form is open and for which token
+  const [activeForm, setActiveForm] = useState<null | { type: 'snipe' | 'trade', project: GenesisLaunch }>(null);
   const [showTokenomicsPopupIdx, setShowTokenomicsPopupIdx] = useState<number | null>(null);
   const tokenomicsAnchorRefs = useRef<(HTMLDivElement | null)[]>([]);
   const tokenomicsHoverTimeout = useRef<NodeJS.Timeout | null>(null);
   const [searchTerm] = useState<string>('');
   const [sortOption, setSortOption] = useState<string>('score');
-  const [selectedTradeProject, setSelectedTradeProject] = useState<GenesisLaunch | null>(null);
-  const [isTradeFormOpen, setIsTradeFormOpen] = useState(false);
+  const [pendingTabChange, setPendingTabChange] = useState<string | null>(null);
+  const lastFilter = useRef<string>(currentFilter);
 
   const filterOptions = [
     { value: 'all', label: 'All Tokens' },
@@ -188,36 +185,41 @@ export const TokenListPage: React.FC = () => {
       return 0;
     });
 
-  // Close forms if selected project is no longer in the list
+  // Only auto-open the first token's form when the filter (tab) actually changes or on initial load
   useEffect(() => {
-    if (selectedProject && !sortedProjects.includes(selectedProject)) {
-      setSelectedProject(null);
-      setIsSnipeFormOpen(false);
+    if (sortedProjects.length === 0) {
+      setActiveForm(null);
+      return;
     }
-
-    if (selectedTradeProject && !sortedProjects.includes(selectedTradeProject)) {
-      setSelectedTradeProject(null);
-      setIsTradeFormOpen(false);
-    }
-  }, [sortedProjects, selectedProject, selectedTradeProject]);
-  // Set initial project when data is loaded or filter changes
-  useEffect(() => {
-    if (sortedProjects.length === 0) return;
-    const timeout = setTimeout(() => {
-      if (currentFilter === 'ended') {
-        setSelectedTradeProject(sortedProjects[0]);
-        setIsTradeFormOpen(true);
+    // If a tab change is pending and data is loaded, open the form for the new tab
+    if (pendingTabChange && lastFilter.current !== pendingTabChange) {
+      if (pendingTabChange === 'ended') {
+        setActiveForm({ type: 'trade', project: sortedProjects[0] });
       } else {
-        setSelectedProject(sortedProjects[0]);
-        setIsSnipeFormOpen(true);
+        setActiveForm({ type: 'snipe', project: sortedProjects[0] });
       }
-      setIsFormLoading(false); // done loading
-    }, 300); // adjust as needed
+      lastFilter.current = pendingTabChange;
+      setPendingTabChange(null);
+      return;
+    }
+    // On initial load, if no form is open and there are tokens, open the form for the first token
+    if (!activeForm) {
+      if (currentFilter === 'ended') {
+        setActiveForm({ type: 'trade', project: sortedProjects[0] });
+      } else {
+        setActiveForm({ type: 'snipe', project: sortedProjects[0] });
+      }
+      lastFilter.current = currentFilter;
+    }
+  }, [sortedProjects, currentFilter, pendingTabChange]);
 
-    return () => clearTimeout(timeout);
-  }, [sortedProjects, currentFilter]);
-
-
+  // Close the form if the selected project is no longer in the filtered list
+  useEffect(() => {
+    if (!activeForm) return;
+    if (!sortedProjects.includes(activeForm.project)) {
+      setActiveForm(null);
+    }
+  }, [sortedProjects, activeForm]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -268,34 +270,36 @@ export const TokenListPage: React.FC = () => {
   };
 
   const handleSnipe = (project: GenesisLaunch) => {
-    setSelectedProject(project);
-    setIsSnipeFormOpen(true);
-    setSelectedTradeProject(null);
-    setIsTradeFormOpen(false);
+    setActiveForm({ type: 'snipe', project });
   };
 
   const handleTrade = (project: GenesisLaunch) => {
-    setSelectedTradeProject(project);
-    setIsTradeFormOpen(true);
-    setSelectedProject(null);
-    setIsSnipeFormOpen(false);
+    setActiveForm({ type: 'trade', project });
   };
 
   const handleSnipeSubmit = async (amount: number) => {
-    if (selectedProject) {
+    if (activeForm && activeForm.project) {
       // Implement actual snipe functionality here
-      console.log('Sniping project:', selectedProject.virtual.name, 'Amount:', amount);
+      console.log('Sniping project:', activeForm.project.virtual.name, 'Amount:', amount);
       // You would typically call your snipe function here
     }
   };
 
-  const handleSubscribe = async (project: GenesisLaunch) => {
-    console.log("Subscribe", project.virtual.name);
+  const handleSubscribe = (project: GenesisLaunch) => {
+    setActiveForm({ type: 'snipe', project });
   };
 
   const handleTradeClose = () => {
-    setIsTradeFormOpen(false);
-    setSelectedTradeProject(null);
+    setActiveForm(null);
+  };
+
+  // When the tab changes, set pendingTabChange
+  const handleTabChange = (newFilter: string) => {
+    if (currentFilter === newFilter) return;
+    setActiveForm(null);
+    setCurrentFilter(newFilter as StatusFilter);
+    setCurrentPage(1);
+    setPendingTabChange(newFilter);
   };
 
   return (
@@ -310,16 +314,7 @@ export const TokenListPage: React.FC = () => {
                 {filterOptions.map((option) => (
                   <button
                     key={option.value}
-                    onClick={() => {
-                      if (currentFilter === option.value) return
-                      setIsFormLoading(true);
-                      setCurrentFilter(option.value as StatusFilter);
-                      setCurrentPage(1);
-                      setSelectedProject(null);
-                      setSelectedTradeProject(null);
-                      setIsSnipeFormOpen(false);
-                      setIsTradeFormOpen(false);
-                    }}
+                    onClick={() => handleTabChange(option.value)}
                     className={`px-4 py-1 rounded-lg text-sm font-medium transition-all duration-200
                       ${currentFilter === option.value
                         ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20'
@@ -520,26 +515,22 @@ export const TokenListPage: React.FC = () => {
                             {/* Actions */}
                             <div className="col-span-1 flex justify-end items-center space-x-1 w-[120px] min-w-[120px]">
                               {isActive && (
-                                <>
-                                  <button
-                                    onClick={() => handleSnipe(project)}
-                                    className="p-1.5 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
-                                    title="Snipe at launch"
-                                  >
-                                    <Zap size={16} />
-                                  </button>
-                                </>
+                                <button
+                                  onClick={() => handleSnipe(project)}
+                                  className="p-1.5 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+                                  title="Snipe at launch"
+                                >
+                                  <Zap size={16} />
+                                </button>
                               )}
                               {isUpcoming && (
-                                <>
-                                  <button
-                                    onClick={() => handleSubscribe(project)}
-                                    className="p-1.5 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
-                                    title="Subscribe"
-                                  >
-                                    <Clock size={16} />
-                                  </button>
-                                </>
+                                <button
+                                  onClick={() => handleSubscribe(project)}
+                                  className="p-1.5 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
+                                  title="Subscribe"
+                                >
+                                  <Clock size={16} />
+                                </button>
                               )}
                               {project.status === 'FINALIZED' && (
                                 <button
@@ -611,40 +602,22 @@ export const TokenListPage: React.FC = () => {
 
                               <div className="flex space-x-2">
                                 {isActive && (
-                                  <>
-                                    <button
-                                      onClick={() => handleSnipe(project)}
-                                      className="p-2 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
-                                      title="Snipe at launch"
-                                    >
-                                      <Zap size={16} />
-                                    </button>
-                                    <button
-                                      onClick={() => handleSubscribe(project)}
-                                      className="p-2 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
-                                      title="Subscribe"
-                                    >
-                                      <Clock size={16} />
-                                    </button>
-                                  </>
+                                  <button
+                                    onClick={() => handleSnipe(project)}
+                                    className="p-2 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+                                    title="Snipe at launch"
+                                  >
+                                    <Zap size={16} />
+                                  </button>
                                 )}
                                 {isUpcoming && (
-                                  <>
-                                    <button
-                                      onClick={() => handleSnipe(project)}
-                                      className="p-2 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
-                                      title="Snipe at launch"
-                                    >
-                                      <Zap size={16} />
-                                    </button>
-                                    <button
-                                      onClick={() => handleSubscribe(project)}
-                                      className="p-2 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
-                                      title="Subscribe"
-                                    >
-                                      <Clock size={16} />
-                                    </button>
-                                  </>
+                                  <button
+                                    onClick={() => handleSubscribe(project)}
+                                    className="p-2 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+                                    title="Snipe at launch"
+                                  >
+                                    <Zap size={16} />
+                                  </button>
                                 )}
                                 {project.status === 'FINALIZED' && (
                                   <button
@@ -720,28 +693,26 @@ export const TokenListPage: React.FC = () => {
           </div>
 
           <AnimatePresence mode="wait">
-            {isFormLoading ? (
-              <GhostForm />
-            ) : (selectedProject || selectedTradeProject) && (
+            {activeForm && (
               <motion.div
-                key={selectedTradeProject?.id || selectedProject?.id}
+                key={activeForm.project.id + '-' + activeForm.type}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
                 className="w-full lg:w-96 lg:sticky lg:top-6 self-start"
               >
-                {selectedTradeProject ? (
+                {activeForm.type === 'trade' ? (
                   <BuySellForm
-                    project={selectedTradeProject}
-                    isOpen={isTradeFormOpen}
-                    onClose={() => { }}
+                    project={activeForm.project}
+                    isOpen={true}
+                    onClose={handleTradeClose}
                   />
                 ) : (
                   <SnipeForm
-                    project={selectedProject!}
-                    isOpen={isSnipeFormOpen}
-                    onClose={() => { }}
+                    project={activeForm.project}
+                    isOpen={true}
+                    onClose={handleTradeClose}
                     onSnipe={handleSnipeSubmit}
                   />
                 )}
