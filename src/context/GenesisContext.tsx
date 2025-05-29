@@ -104,6 +104,10 @@ interface GenesisContextType {
   sentientPagination: Pagination | null;
   sentientLoading: boolean;
   fetchSentients: (page?: number, pageSize?: number) => Promise<void>;
+  selectedToken: number | null;
+  setSelectedToken: (tokenId: number | null) => void;
+  tradeData: any | null;
+  fetchTradeData: (tokenId: number) => Promise<void>;
 }
 
 const GenesisContext = createContext<GenesisContextType | undefined>(undefined);
@@ -138,6 +142,10 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
   const [sentients, setSentients] = useState<Virtual[]>([]);
   const [sentientPagination, setSentientPagination] = useState<Pagination | null>(null);
   const [sentientLoading, setSentientLoading] = useState(false);
+
+  // Trade data states
+  const [selectedToken, setSelectedToken] = useState<number | null>(null);
+  const [tradeData, setTradeData] = useState<any | null>(null);
 
   const baseUrl = 'https://api.virtuals.io/api/geneses';
 
@@ -181,7 +189,7 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
     }
   }, [currentFilter]);
 
-  const fetchSentients = useCallback(async (page: number = 1, pageSize: number = 100) => {
+  const fetchSentients = useCallback(async (page: number = 1, pageSize: number = 10) => {
     setSentientLoading(true);
     setError(null);
 
@@ -189,7 +197,6 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
       const url = `https://api.virtuals.io/api/virtuals?filters[status]=2&filters[chain]=BASE&sort[0]=volume24h%3Adesc&sort[1]=createdAt%3Adesc&populate[0]=image&populate[1]=genesis&populate[2]=creator&pagination[page]=${page}&pagination[pageSize]=${pageSize}&noCache=0`;
 
       const response = await axios.get(url);
-      console.log("response+++++", response)
       setSentients(response.data.data);
 
       setSentientPagination(response.data.meta.pagination);
@@ -295,6 +302,20 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
     return score >= 50 && score < 70;
   };
 
+  const fetchTradeData = useCallback(async (tokenId: number) => {
+    try {
+      const url = `https://api.virtuals.io/api/virtuals/24352/trade-data`;
+      const response = await axios.get<any>(url);
+      setTradeData(response.data);
+    } catch (err) {
+      console.error('Error fetching trade data:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTradeData(selectedToken);
+
+  }, []);
   useEffect(() => {
     fetchSentients(); // Initial fetch with first page
   }, []); // Add fetchSentients to dependency array
@@ -322,6 +343,10 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
         sentientPagination,
         sentientLoading,
         fetchSentients,
+        selectedToken,
+        setSelectedToken,
+        tradeData,
+        fetchTradeData,
       }}
     >
       {children}

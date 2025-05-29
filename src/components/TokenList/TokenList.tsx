@@ -4,6 +4,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Link } from 'react-router-dom';
 import { TokenomicsPieChart } from '../TokenDetails/charts/TokenomicPie';
 import BaseIcon from '../ui/BaseIcon';
+import { useGenesis } from '../../context/GenesisContext';
 
 interface TokenData {
     id: number;
@@ -44,16 +45,27 @@ interface TokenData {
     };
 }
 
-export const TokenList: React.FC<{ token: any }> = ({ token }) => {
-    const [copied, setCopied] = useState(false);
+interface TokenListProps {
+    token: TokenData;
 
+    isSelected?: boolean;
+    trade: {};
+    onClick?: () => void;
+}
+
+export const TokenList: React.FC<any> = ({ token, isSelected, trade, onClick }) => {
+    const [copied, setCopied] = useState(false);
     const handleCopy = () => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
 
     return (
-        <div className="bg-dark-500 rounded-2xl border border-dark-300 overflow-hidden">
+        <div
+            className={`bg-dark-500 rounded-2xl border ${isSelected ? 'border-primary-500' : 'border-dark-300'
+                } overflow-hidden cursor-pointer transition-colors`}
+            onClick={onClick}
+        >
             {/* Desktop View */}
             <div className="hidden md:block">
                 <div className="grid grid-cols-9 gap-4 p-4 items-center">
@@ -147,12 +159,12 @@ export const TokenList: React.FC<{ token: any }> = ({ token }) => {
 
                     {/* Actions */}
                     <div className="col-span-1 flex justify-end space-x-2">
-                        {token.genesis.status === 'STARTED' && (
+                        {token.genesis?.status === 'STARTED' && (
                             <button className="p-1.5 rounded-full bg-primary-500 text-white hover:bg-primary-600">
                                 <Zap size={16} />
                             </button>
                         )}
-                        {token.genesis.status === 'FINALIZED' && (
+                        {token.genesis?.status === 'FINALIZED' && (
                             <button className="p-1.5 rounded-full bg-success-500 text-white hover:bg-success-600">
                                 <DollarSign size={16} />
                             </button>
@@ -224,7 +236,7 @@ export const TokenList: React.FC<{ token: any }> = ({ token }) => {
                 </div>
 
                 <div className="flex justify-end space-x-2">
-                    {token.genesis.status === 'STARTED' && (
+                    {token.genesis?.status === 'STARTED' && (
                         <button className="p-2 rounded-full bg-primary-500 text-white">
                             <Zap size={16} />
                         </button>
