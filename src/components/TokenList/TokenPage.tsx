@@ -4,6 +4,7 @@ import { BuySellForm } from "../BuySellForm";
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { TradeCharts } from "../TokenDetails/charts/TradeChart";
+import { TradePanel } from "../TokenDetails/TradePanel";
 
 export const TokenPage: React.FC = () => {
     const {
@@ -54,7 +55,6 @@ export const TokenPage: React.FC = () => {
                                 key={token.id}
                                 token={token}
                                 isSelected={selectedToken === token.id}
-                                trade={tradeData}
                                 onClick={() => handleTokenSelect(token.id)}
                             />
                         ))
@@ -125,47 +125,9 @@ export const TokenPage: React.FC = () => {
                         />
 
                         {/* Trade Data Panel */}
-                        {tradeData && (
-                            <>
-                                {console.log("MY trade data", tradeData)}
-                                <div className="bg-dark-500 rounded-2xl border border-dark-300 p-4">
-                                    <h3 className="text-white font-medium mb-3">Trading Statistics</h3>
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-light-400">Market Cap</span>
-                                            <span className="text-white">
-                                                ${Number(tradeData.marketCap).toLocaleString()}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-light-400">24h Volume</span>
-                                            <span className="text-white">
-                                                ${Number(tradeData.volume24h).toLocaleString()}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-light-400">Liquidity</span>
-                                            <span className="text-white">
-                                                ${Number(tradeData.liquidityInUSD).toLocaleString()}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-light-400">Buy Price</span>
-                                            <span className="text-success-400">
-                                                ${Number(tradeData.buyPrice).toFixed(6)}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-light-400">Sell Price</span>
-                                            <span className="text-error-400">
-                                                ${Number(tradeData.sellPrice).toFixed(6)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <TradeCharts data={tradeData} />
-                            </>
+                        {tradeData && (<>
+                            <TradePanel tradeData={tradeData} />
+                            <TradeCharts data={tradeData} /></>
                         )}
                     </>
                 )}
