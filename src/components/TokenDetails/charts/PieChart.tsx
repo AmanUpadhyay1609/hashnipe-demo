@@ -8,7 +8,6 @@ const PIE_COLORS = [
 
 
 export const TokenomicsPieChart = ({ tokenomics }) => {
-  // Each tokenomics item is a slice, label by id or type
   const data = tokenomics.map((t) => ({
     name: t.releases[0]?.type || `#${t.id}`,
     value: t.bips,

@@ -70,6 +70,13 @@ interface GenesisResponse {
   };
 }
 
+interface SentientResponse {
+  data: Virtual[];
+  meta: {
+    pagination: Pagination;
+  };
+}
+
 export type StatusFilter = 'all' | 'active' | 'ended' | 'upcoming' | 'top-snipe';
 
 interface ApiErrorResponse {
@@ -93,6 +100,10 @@ interface GenesisContextType {
   endedProjects: GenesisLaunch[];
   upcomingProjects: GenesisLaunch[];
   topSnipeProjects: GenesisLaunch[];
+  sentients: Virtual[];
+  sentientPagination: Pagination | null;
+  sentientLoading: boolean;
+  fetchSentients: (page?: number, pageSize?: number) => Promise<void>;
 }
 
 const GenesisContext = createContext<GenesisContextType | undefined>(undefined);
@@ -122,6 +133,11 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
   const [endedProjects, setEndedProjects] = useState<GenesisLaunch[]>([]);
   const [upcomingProjects, setUpcomingProjects] = useState<GenesisLaunch[]>([]);
   const [topSnipeProjects, setTopSnipeProjects] = useState<GenesisLaunch[]>([]);
+
+  // Sentient states
+  const [sentients, setSentients] = useState<Virtual[]>([]);
+  const [sentientPagination, setSentientPagination] = useState<Pagination | null>(null);
+  const [sentientLoading, setSentientLoading] = useState(false);
 
   const baseUrl = 'https://api.virtuals.io/api/geneses';
 
@@ -164,6 +180,25 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
       setLoading(false);
     }
   }, [currentFilter]);
+
+  const fetchSentients = useCallback(async (page: number = 1, pageSize: number = 100) => {
+    setSentientLoading(true);
+    setError(null);
+
+    try {
+      const url = `https://api.virtuals.io/api/virtuals?filters[status]=2&filters[chain]=BASE&sort[0]=volume24h%3Adesc&sort[1]=createdAt%3Adesc&populate[0]=image&populate[1]=genesis&populate[2]=creator&pagination[page]=${page}&pagination[pageSize]=${pageSize}&noCache=0`;
+
+      const response = await axios.get(url);
+      console.log("response+++++", response)
+      setSentients(response.data.data);
+
+      setSentientPagination(response.data.meta.pagination);
+    } catch (err) {
+      handleApiError(err);
+    } finally {
+      setSentientLoading(false);
+    }
+  }, []);
 
   const fetchAllCategories = useCallback(async () => {
     setLoading(true);
@@ -260,6 +295,10 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
     return score >= 50 && score < 70;
   };
 
+  useEffect(() => {
+    fetchSentients(); // Initial fetch with first page
+  }, []); // Add fetchSentients to dependency array
+
   return (
     <GenesisContext.Provider
       value={{
@@ -278,7 +317,11 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
         activeProjects,
         endedProjects,
         upcomingProjects,
-        topSnipeProjects
+        topSnipeProjects,
+        sentients,
+        sentientPagination,
+        sentientLoading,
+        fetchSentients,
       }}
     >
       {children}
