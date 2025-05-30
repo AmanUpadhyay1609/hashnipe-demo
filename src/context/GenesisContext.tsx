@@ -194,6 +194,7 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
     setError(null);
 
     try {
+
       const url = `https://api.virtuals.io/api/virtuals?filters[status]=2&filters[chain]=BASE&sort[0]=volume24h%3Adesc&sort[1]=createdAt%3Adesc&populate[0]=image&populate[1]=genesis&populate[2]=creator&pagination[page]=${page}&pagination[pageSize]=${pageSize}&noCache=0`;
 
       const response = await axios.get(url);
@@ -304,7 +305,7 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
 
   const fetchTradeData = useCallback(async (tokenId: number) => {
     try {
-      const url = `https://api.virtuals.io/api/virtuals/24352/trade-data`;
+      const url = `https://api.virtuals.io/api/virtuals/${tokenId}/trade-data`;
       const response = await axios.get<any>(url);
       setTradeData(response.data);
     } catch (err) {

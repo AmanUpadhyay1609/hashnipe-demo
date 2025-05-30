@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { TokenListPage } from './TokenListPage';
+import { TokenPage } from '../components/TokenList/TokenPage';
 
 interface TabData {
     id: string;
@@ -17,12 +18,12 @@ const tabs: TabData[] = [
     {
         id: 'Sentient Agents',
         label: 'Sentient Agents',
-        content: <div className="p-4">Tokenomics Content</div>
+        content: <TokenPage />
     },
     {
         id: 'Prototype Agents',
         label: 'Prototype Agents',
-        content: <div className="p-4">Activity Content</div>
+        content: <TokenPage />
     }
 ];
 

@@ -68,9 +68,9 @@ export const TokenList: React.FC<any> = ({ token, isSelected, trade, onClick }) 
         >
             {/* Desktop View */}
             <div className="hidden md:block">
-                <div className="grid grid-cols-9 gap-4 p-4 items-center">
+                <div className="grid grid-cols-9 gap-4 p-1 px-2 items-center">
                     {/* Token Info */}
-                    <div className="col-span-2 flex items-center space-x-3">
+                    <div className="col-span-3 flex items-center space-x-3">
                         <div className="w-12 h-12 rounded-full overflow-hidden bg-dark-300 flex-shrink-0">
                             {token.image ? (
                                 <>
@@ -122,9 +122,9 @@ export const TokenList: React.FC<any> = ({ token, isSelected, trade, onClick }) 
                     </div>
 
                     {/* Price & Change */}
-                    <div className="col-span-2">
+                    <div className="col-span-1">
                         <div className="text-white font-medium">
-                            ${Number(token.virtualTokenValue).toLocaleString()}
+                            {(Number(token.virtualTokenValue) / 10 ** 18).toLocaleString()} Virtuals
                         </div>
                         <div className={`text-sm ${token.priceChangePercent24h >= 0
                             ? 'text-success-400'
@@ -157,25 +157,7 @@ export const TokenList: React.FC<any> = ({ token, isSelected, trade, onClick }) 
                         <div className="text-xs text-light-400">Holders</div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="col-span-1 flex justify-end space-x-2">
-                        {token.genesis?.status === 'STARTED' && (
-                            <button className="p-1.5 rounded-full bg-primary-500 text-white hover:bg-primary-600">
-                                <Zap size={16} />
-                            </button>
-                        )}
-                        {token.genesis?.status === 'FINALIZED' && (
-                            <button className="p-1.5 rounded-full bg-success-500 text-white hover:bg-success-600">
-                                <DollarSign size={16} />
-                            </button>
-                        )}
-                        <Link
-                            to={`/tokens/${token.id}`}
-                            className="p-1.5 rounded-full bg-dark-300 text-light-300 hover:bg-dark-200"
-                        >
-                            <ArrowRight size={16} />
-                        </Link>
-                    </div>
+                    
                 </div>
             </div>
 

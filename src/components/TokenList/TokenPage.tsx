@@ -15,19 +15,31 @@ export const TokenPage: React.FC = () => {
         selectedToken,
         setSelectedToken,
         tradeData,
+        fetchTradeData, // Add this
     } = useGenesis();
     const [currentPage, setCurrentPage] = useState(1);
 
-    // Select first token by default
+    // Handle initial data fetching and page changes
     useEffect(() => {
-        if (sentients && sentients.length > 0 && !selectedToken) {
-            handleTokenSelect(sentients[0].id);
-        }
-    }, [sentients]);
-
-    useEffect(() => {
-        fetchSentients(currentPage);
+        const loadPageData = async () => {
+            await fetchSentients(currentPage);
+        };
+        loadPageData();
     }, [currentPage, fetchSentients]);
+
+    // Fetch trade data when selected token changes
+    useEffect(() => {
+        if (selectedToken) {
+            fetchTradeData(selectedToken);
+        }
+    }, [selectedToken, fetchTradeData]);
+
+    // Select first token when sentients list changes
+    useEffect(() => {
+        if (sentients && sentients.length > 0) {
+            setSelectedToken(sentients[0].id);
+        }
+    }, [sentients, setSelectedToken]);
 
     const handleTokenSelect = (tokenId: number) => {
         setSelectedToken(tokenId);
@@ -43,10 +55,10 @@ export const TokenPage: React.FC = () => {
     return (
         <div className="flex flex-col lg:flex-row gap-4 container mx-auto p-4">
             {/* Left side - Token List */}
-            <div className="flex-1 space-y-6">
+            <div className="flex-1 space-y-4">
                 <div className="space-y-4">
                     {sentientLoading ? (
-                        <div className="flex justify-center py-8">
+                        <div className="flex justify-center py-2">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500" />
                         </div>
                     ) : (
@@ -115,22 +127,26 @@ export const TokenPage: React.FC = () => {
             </div>
 
             {/* Right side - Trading Panel */}
-            <div className="w-full lg:w-96 space-y-4">
-                {selectedProject && (
-                    <>
-                        <BuySellForm
-                            project={{ virtual: selectedProject }}
-                            isOpen={true}
-                            onClose={() => { }}
-                        />
+            <div className="w-full lg:w-96 h-[calc(100vh-2rem)] sticky top-4">
+                <div className="space-y-4 h-full overflow-y-auto scrollbar-thin scrollbar-track-dark-400 scrollbar-thumb-dark-300 pr-2">
+                    {selectedProject && (
+                        <>
+                            <BuySellForm
+                                project={{ virtual: selectedProject }}
+                                isOpen={true}
+                                onClose={() => { }}
+                            />
 
-                        {/* Trade Data Panel */}
-                        {tradeData && (<>
-                            <TradePanel tradeData={tradeData} />
-                            <TradeCharts data={tradeData} /></>
-                        )}
-                    </>
-                )}
+                            {/* Trade Data Panel */}
+                            {tradeData && (
+                                <>
+                                    <TradePanel tradeData={tradeData} />
+                                    <TradeCharts data={tradeData} />
+                                </>
+                            )}
+                        </>
+                    )}
+                </div>
             </div>
         </div>
     );
