@@ -108,6 +108,12 @@ interface GenesisContextType {
   setSelectedToken: (tokenId: number | null) => void;
   tradeData: any | null;
   fetchTradeData: (tokenId: number) => Promise<void>;
+  prototypeData: Virtual[];
+  prototypePagination: Pagination | null;
+  prototypeLoading: boolean;
+  fetchPrototype: (page?: number, pageSize?: number) => Promise<void>;
+  selectedPrototypeToken: number | null;
+  setPrototypeToken: (tokenId: number | null) => void;
 }
 
 const GenesisContext = createContext<GenesisContextType | undefined>(undefined);
@@ -146,6 +152,14 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
   // Trade data states
   const [selectedToken, setSelectedToken] = useState<number | null>(null);
   const [tradeData, setTradeData] = useState<any | null>(null);
+
+  // Prototype states
+  const [prototypeData, setPrototypeData] = useState<Virtual[]>([]);
+  const [prototypePagination, setPrototypePagination] = useState<Pagination | null>(null);
+  const [prototypeLoading, setPrototypeLoading] = useState(false);
+
+  // New state for selected prototype token
+  const [selectedPrototypeToken, setSelectedPrototypeToken] = useState<number | null>(null);
 
   const baseUrl = 'https://api.virtuals.io/api/geneses';
 
@@ -197,6 +211,7 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
 
       const url = `https://api.virtuals.io/api/virtuals?filters[status]=2&filters[chain]=BASE&sort[0]=volume24h%3Adesc&sort[1]=createdAt%3Adesc&populate[0]=image&populate[1]=genesis&populate[2]=creator&pagination[page]=${page}&pagination[pageSize]=${pageSize}&noCache=0`;
 
+
       const response = await axios.get(url);
       setSentients(response.data.data);
 
@@ -205,6 +220,23 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
       handleApiError(err);
     } finally {
       setSentientLoading(false);
+    }
+  }, []);
+
+  const fetchPrototype = useCallback(async (page: number = 1, pageSize: number = 10) => {
+    setPrototypeLoading(true);
+    setError(null);
+
+    try {
+      const url = `https://api.virtuals.io/api/virtuals?filters[status]=1&filters[chain]=BASE&sort[0]=volume24h%3Adesc&sort[1]=createdAt%3Adesc&populate[0]=image&populate[1]=genesis&pagination[page]=${page}&pagination[pageSize]=${pageSize}&isGrouped=1&noCache=0`;
+
+      const response = await axios.get<SentientResponse>(url);
+      setPrototypeData(response.data.data);
+      setPrototypePagination(response.data.meta.pagination);
+    } catch (err) {
+      handleApiError(err);
+    } finally {
+      setPrototypeLoading(false);
     }
   }, []);
 
@@ -305,8 +337,13 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
 
   const fetchTradeData = useCallback(async (tokenId: number) => {
     try {
+      if(tokenId==null) {
+        setTradeData([]);
+        return;
+      }
       const url = `https://api.virtuals.io/api/virtuals/${tokenId}/trade-data`;
       const response = await axios.get<any>(url);
+      
       setTradeData(response.data);
     } catch (err) {
       console.error('Error fetching trade data:', err);
@@ -319,6 +356,7 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
   }, []);
   useEffect(() => {
     fetchSentients(); // Initial fetch with first page
+    fetchPrototype(); // Initial fetch for prototypes
   }, []); // Add fetchSentients to dependency array
 
   return (
@@ -348,6 +386,12 @@ export const GenesisProvider: React.FC<GenesisProviderProps> = ({ children }) =>
         setSelectedToken,
         tradeData,
         fetchTradeData,
+        prototypeData,
+        prototypePagination,
+        prototypeLoading,
+        fetchPrototype,
+        selectedPrototypeToken,
+        setPrototypeToken: setSelectedPrototypeToken,
       }}
     >
       {children}

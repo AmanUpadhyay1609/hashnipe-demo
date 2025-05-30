@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { TokenListPage } from './TokenListPage';
 import { TokenPage } from '../components/TokenList/TokenPage';
+import { PrototypePage } from '../components/TokenList/PrototypePage';
 
 interface TabData {
     id: string;
@@ -23,7 +24,7 @@ const tabs: TabData[] = [
     {
         id: 'Prototype Agents',
         label: 'Prototype Agents',
-        content: <TokenPage />
+        content: <PrototypePage />
     }
 ];
 
