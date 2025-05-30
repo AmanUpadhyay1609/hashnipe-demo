@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { TokenListPage } from './TokenListPage';
 import { TokenPage } from '../components/TokenList/TokenPage';
 import { PrototypePage } from '../components/TokenList/PrototypePage';
+import { getToken } from '../api/backend';
+import { useGenesis } from '../context/GenesisContext';
+import { useAuth } from '../context/AuthContext';
 
 interface TabData {
     id: string;
@@ -30,7 +33,7 @@ const tabs: TabData[] = [
 
 export default function Tokenpage() {
     const [activeTab, setActiveTab] = useState(tabs[0].id);
-
+  
     return (
         <div className="min-h-screen bg-dark-500">
             <div className="container mx-auto py-6">

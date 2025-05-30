@@ -10,6 +10,7 @@ import PortfolioPage from './components/Portfolio/PortfolioPage';
 import TokenDetailsPage from './pages/TokenDetailsPage';
 import Tokenpage from './pages/Tokenpage';
 import { TokenPage } from './components/TokenList/TokenPage';
+import { ApiProvider } from './context/ApiContext';
 
 // App Routes Component
 const AppRoutes = () => {
@@ -30,7 +31,7 @@ const AppRoutes = () => {
     <UserLayout>
       <Routes>
         <Route path="/" element={<Tokenpage />} />
-        <Route path="/test" element={<TokenPage/>}/>
+        <Route path="/test" element={<TokenPage />} />
         <Route path="/tokens/:id" element={<TokenDetailsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
         <Route path="/portfolio" element={<PortfolioPage />} />
@@ -43,9 +44,11 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <GenesisProvider>
-          <AppRoutes />
-        </GenesisProvider>
+        <ApiProvider>
+          <GenesisProvider>
+            <AppRoutes />
+          </GenesisProvider>
+        </ApiProvider>
       </Router>
     </AuthProvider>
   );

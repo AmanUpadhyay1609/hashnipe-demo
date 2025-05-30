@@ -32,7 +32,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
     const location = useLocation();
     const [copied, setCopied] = useState(false);
 
-    const username = decodedToken?.walletAddress || 'User';
+    const username = decodedToken?.wallets.base || 'User';
     const handleCopyUsername = async () => {
         try {
             await navigator.clipboard.writeText(username);

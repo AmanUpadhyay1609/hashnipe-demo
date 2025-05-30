@@ -4,7 +4,7 @@ import { jwtDecode } from 'jwt-decode';
 
 interface DecodedToken {
     chatId?: string;
-    walletAddress?: string;
+    wallets?: { base: string, solana: string };
     exp: number;
     iat: number;
 }
