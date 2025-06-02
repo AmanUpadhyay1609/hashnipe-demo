@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import { Zap, Info, TrendingUp, TrendingDown, Clock } from 'lucide-react';
 import { GenesisLaunch } from '../context/GenesisContext';
-import { useTokens } from '../context/TokensContext';
+import { tokens } from '../data/supportedTokens';
 
 interface BuySellFormProps {
     project: GenesisLaunch;
@@ -14,9 +15,80 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
     const [token, setToken] = useState<string>('BASE_ETH');
     const [isBuying, setIsBuying] = useState<boolean>(true);
     const [showTokenDropdown, setShowTokenDropdown] = useState(false);
+    const [quote, setQuote] = useState<string>('');
+    const [quoteLoading, setQuoteLoading] = useState(false);
+    const [quoteError, setQuoteError] = useState<string | null>(null);
+    const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-    const { tokens, loading: tokensLoading, error: tokensError } = useTokens();
-    console.log(tokens, 'tokens from buy sell form');
+    // const { tokens, loading: tokensLoading, error: tokensError } = useTokens();
+
+    console.log(tokens, '<-----------tokens from buy sell form');
+
+    // Helper to get token info by symbol
+    const getTokenInfo = (symbol: string) => tokens.find(t => t.tokenSymbol === symbol);
+    const selectedTokenInfo = getTokenInfo(token);
+    const projectTokenInfo = {
+        tokenSymbol: project.virtual.symbol,
+        tokenContractAddress: project.virtual.tokenAddress ,
+        decimals: 18,
+    };
+
+    // Get user wallet address from localStorage or context (update as needed)
+    // const userWalletAddress = localStorage.getItem('walletAddress') || '';
+
+    useEffect(() => {
+        if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+            setQuote('');
+            setQuoteError(null);
+            return;
+        }
+        setQuote('');
+        setQuoteError(null);
+        setQuoteLoading(true);
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(async () => {
+            try {
+                // ChainId is always 8453 for BASE
+                const chainId = 8453;
+                const slippage = 0.5;
+                let fromTokenAddress = '', toTokenAddress = '', decimals = 18;
+                if (isBuying) {
+                    fromTokenAddress = selectedTokenInfo?.tokenContractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+                    toTokenAddress = projectTokenInfo.tokenContractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+                    decimals = Number(selectedTokenInfo?.decimals) || 18;
+                } else {
+                    fromTokenAddress = projectTokenInfo.tokenContractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+                    toTokenAddress = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+                    decimals = projectTokenInfo.decimals || 18;
+                }
+                // Convert amount to BN
+                const amountInBN = (BigInt(Math.floor(Number(amount) * Math.pow(10, decimals)))).toString();
+                const url = `http://localhost:3000/api/v1/swapquote?chainId=${chainId}&fromTokenAddress=${fromTokenAddress}&toTokenAddress=${toTokenAddress}&amountInBN=${amountInBN}&slippage=${slippage}&userWalletAddress=0x3B35C042Ae25FE3d262158ec885CF7e042C58C42`;
+                const res = await axios.get(url, {
+                    headers: {
+                        'authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGF0SWQiOiI2NDY5MDUwMjI1Iiwid2FsbGV0cyI6eyJiYXNlIjoiMHgzQjM1QzA0MkFlMjVGRTNkMjYyMTU4ZWM4ODVDRjdlMDQyQzU4QzQyIiwic29sYW5hIjoiOXg1a1liSmdKNldvSFFheUFEbVRZR2g5NFNiTGRibmVjS1A4YlJyN3g5dU0ifSwiaWF0IjoxNzQ4ODQ2NjE0LCJleHAiOjE3NDk0NTE0MTR9.1l21I1-EEkgOYyh-P36xPli--3K7OSy6O9RmHCSHSIo'
+                    }
+                });
+                if (res.data && res.data.success && res.data.data) {
+                    const toTokenAmount = res.data.data.toTokenAmount;
+                    const toTokenDecimals = res.data.data.toToken.decimal || 18;
+                    const humanAmount = (Number(toTokenAmount) / Math.pow(10, Number(toTokenDecimals))).toFixed(6);
+                    setQuote(humanAmount);
+                } else {
+                    setQuote('');
+                    setQuoteError('No quote available');
+                }
+            } catch {
+                setQuote('');
+                setQuoteError('Failed to fetch quote');
+            } finally {
+                setQuoteLoading(false);
+            }
+        }, 2000);
+        return () => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+        };
+    }, [amount, token, isBuying, projectTokenInfo.decimals, projectTokenInfo.tokenContractAddress, selectedTokenInfo?.decimals, selectedTokenInfo?.tokenContractAddress]);
 
     const selectedToken = tokens.find(t => t.tokenSymbol === token);
 
@@ -108,11 +180,9 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                                 <button
                                     onClick={() => setShowTokenDropdown(!showTokenDropdown)}
                                     className="bg-dark-300 text-white px-3 py-1 rounded-md focus:outline-none flex items-center space-x-2"
-                                    disabled={tokensLoading}
+
                                 >
-                                    {tokensLoading ? (
-                                        <span>Loading...</span>
-                                    ) : selectedToken ? (
+                                    { selectedToken ? (
                                         <>
                                             <img
                                                 src={selectedToken.tokenLogoUrl}
@@ -123,7 +193,7 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                                         </>
                                     ) : null}
                                 </button>
-                                {showTokenDropdown && !tokensLoading && !tokensError && (
+                                {showTokenDropdown  && (
                                     <div className="absolute right-0 mt-2 w-48 bg-dark-500 rounded-lg border border-dark-300 shadow-xl z-50">
                                         <div className="p-2 max-h-60 overflow-y-auto">
                                             {tokens.map((token) => (
@@ -177,12 +247,12 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                         <span className="text-light-400">Network Fee</span>
                         <span className="text-light-300">~$0.50</span>
                     </div>
-                    {!isBuying && (
-                        <div className="flex justify-between text-sm">
-                            <span className="text-light-400">You will receive</span>
-                            <span className="text-light-300">0.00 {token}</span>
-                        </div>
-                    )}
+                    <div className="flex justify-between text-sm">
+                        <span className="text-light-400">You will receive</span>
+                        <span className="text-light-300">
+                            {quoteLoading ? 'Fetching quote...' : quoteError ? quoteError : (quote || '0.00')} {isBuying ? project.virtual.symbol : (selectedTokenInfo?.tokenSymbol || token)}
+                        </span>
+                    </div>
                 </div>
 
                 <div className="flex gap-2 mt-4">

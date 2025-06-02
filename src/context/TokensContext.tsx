@@ -29,7 +29,10 @@ export const useTokens = () => {
 };
 
 export const TokensProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [tokens, setTokens] = useState<Token[]>([]);
+  const [tokens, setTokens] = useState<Token[]>(() => {
+    const cached = localStorage.getItem('supportedTokens');
+    return cached ? JSON.parse(cached) : [];
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,6 +52,7 @@ export const TokensProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const data = await response.json();
         console.log(data.data, 'data of supported tokens');
         setTokens(data.data || []);
+        localStorage.setItem('supportedTokens', JSON.stringify(data.data || []));
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch tokens');
@@ -65,4 +69,4 @@ export const TokensProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       {children}
     </TokensContext.Provider>
   );
-}; 
+};
