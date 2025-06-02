@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Zap, Info, TrendingUp, TrendingDown, Clock, X } from 'lucide-react';
+import { Zap, Info, TrendingUp, TrendingDown, Clock } from 'lucide-react';
 import { GenesisLaunch } from '../context/GenesisContext';
+import { useTokens } from '../context/TokensContext';
 
 interface BuySellFormProps {
     project: GenesisLaunch;
@@ -8,43 +9,14 @@ interface BuySellFormProps {
     onClose: () => void;
 }
 
-export const BuySellForm: React.FC<any> = ({ project, isOpen, onClose }) => {
+export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClose }) => {
     const [amount, setAmount] = useState<string>('');
     const [token, setToken] = useState<string>('BASE_ETH');
     const [isBuying, setIsBuying] = useState<boolean>(true);
     const [showTokenDropdown, setShowTokenDropdown] = useState(false);
 
-    //Replace with actual token data or fetch from an API
-    const tokens = [
-        {
-            decimals: '6',
-            tokenContractAddress: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
-            tokenLogoUrl: 'https://static.okx.com/cdn/web3/currency/token/small/637-0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b-1?v=1742202380789',
-            tokenName: 'usdc',
-            tokenSymbol: 'USDC'
-        },
-        {
-            decimals: '18',
-            tokenContractAddress: '0x50c5725949a6f0c72e6c4a641f24049a917db0cb',
-            tokenLogoUrl: 'https://static.okx.com/cdn/web3/currency/token/small/8453-0x50c5725949a6f0c72e6c4a641f24049a917db0cb-97?v=1748278077008',
-            tokenName: 'Dai Stablecoin',
-            tokenSymbol: 'DAI'
-        },
-        {
-            decimals: '18',
-            tokenContractAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-            tokenLogoUrl: 'https://static.okx.com/cdn/wallet/logo/base_20900.png',
-            tokenName: 'Base',
-            tokenSymbol: 'BASE_ETH'
-        },
-        {
-            decimals: '18',
-            tokenContractAddress: '0x4200000000000000000000000000000000000006',
-            tokenLogoUrl: 'https://static.okx.com/cdn/wallet/logo/WETH-0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.png',
-            tokenName: 'Wrapped Ether',
-            tokenSymbol: 'WETH'
-        },
-    ];
+    const { tokens, loading: tokensLoading, error: tokensError } = useTokens();
+    console.log(tokens, 'tokens from buy sell form');
 
     const selectedToken = tokens.find(t => t.tokenSymbol === token);
 
@@ -55,6 +27,7 @@ export const BuySellForm: React.FC<any> = ({ project, isOpen, onClose }) => {
 
     const handleTrade = () => {
         console.log(`${isBuying ? 'Buying' : 'Selling'} ${project.virtual.name} with ${amount} ${token}`);
+        onClose();
     };
 
     if (!isOpen) return null;
@@ -78,6 +51,12 @@ export const BuySellForm: React.FC<any> = ({ project, isOpen, onClose }) => {
                             <div className="text-sm text-primary-400">${project.virtual.symbol}</div>
                         </div>
                     </div>
+                    <button
+                        onClick={onClose}
+                        className="text-light-400 hover:text-light-300"
+                    >
+                        <Clock className="w-5 h-5" />
+                    </button>
                 </div>
             </div>
 
@@ -129,8 +108,11 @@ export const BuySellForm: React.FC<any> = ({ project, isOpen, onClose }) => {
                                 <button
                                     onClick={() => setShowTokenDropdown(!showTokenDropdown)}
                                     className="bg-dark-300 text-white px-3 py-1 rounded-md focus:outline-none flex items-center space-x-2"
+                                    disabled={tokensLoading}
                                 >
-                                    {selectedToken && (
+                                    {tokensLoading ? (
+                                        <span>Loading...</span>
+                                    ) : selectedToken ? (
                                         <>
                                             <img
                                                 src={selectedToken.tokenLogoUrl}
@@ -139,9 +121,9 @@ export const BuySellForm: React.FC<any> = ({ project, isOpen, onClose }) => {
                                             />
                                             <span>{selectedToken.tokenSymbol}</span>
                                         </>
-                                    )}
+                                    ) : null}
                                 </button>
-                                {showTokenDropdown && (
+                                {showTokenDropdown && !tokensLoading && !tokensError && (
                                     <div className="absolute right-0 mt-2 w-48 bg-dark-500 rounded-lg border border-dark-300 shadow-xl z-50">
                                         <div className="p-2 max-h-60 overflow-y-auto">
                                             {tokens.map((token) => (

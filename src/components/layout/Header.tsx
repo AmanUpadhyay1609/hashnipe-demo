@@ -22,7 +22,7 @@ export const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
  
 
   const { isAuthenticated, decodedToken, logout } = useAuth();
-  const username = decodedToken?.walletAddress || 'User';
+  const username = decodedToken?.wallets?.base || 'User';
 
   const handleCopyUsername = async () => {
     try {

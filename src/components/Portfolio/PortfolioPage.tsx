@@ -22,7 +22,10 @@ const PortfolioPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const walletAddress = decodedToken?.walletAddress ;
+        const walletAddress = decodedToken?.wallets?.base || localStorage.getItem('walletAddress');
+        if (!walletAddress) {
+          console.warn('No wallet address found in decodedToken or localStorage');
+        }
 
         console.log('Wallet Address:', walletAddress);
         if (!walletAddress) {

@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
-import { TokenListPage } from './pages/TokenListPage';
 import { Layout } from './components/layout/Layout';
 import { UserLayout } from './components/layout/UserLayout';
 import { GenesisProvider } from './context/GenesisContext';
@@ -11,6 +10,7 @@ import TokenDetailsPage from './pages/TokenDetailsPage';
 import Tokenpage from './pages/Tokenpage';
 import { TokenPage } from './components/TokenList/TokenPage';
 import { ApiProvider } from './context/ApiContext';
+import { TokensProvider } from './context/TokensContext';
 
 // App Routes Component
 const AppRoutes = () => {
@@ -46,7 +46,9 @@ function App() {
       <Router>
         <ApiProvider>
           <GenesisProvider>
-            <AppRoutes />
+            <TokensProvider>
+              <AppRoutes />
+            </TokensProvider>
           </GenesisProvider>
         </ApiProvider>
       </Router>
