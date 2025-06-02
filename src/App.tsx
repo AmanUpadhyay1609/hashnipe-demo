@@ -10,18 +10,22 @@ import TokenDetailsPage from './pages/TokenDetailsPage';
 import Tokenpage from './pages/Tokenpage';
 import { TokenPage } from './components/TokenList/TokenPage';
 import { ApiProvider } from './context/ApiContext';
-import { TokensProvider } from './context/TokensContext';
+
+// Add LoadingScreen component
+const LoadingScreen = () => (
+  <div className="min-h-screen flex items-center justify-center bg-dark-500">
+    <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent" />
+  </div>
+);
 
 // App Routes Component
 const AppRoutes = () => {
-  const { authStatus, isAuthenticated } = useAuth();
+  const { isAuthenticated, authStatus } = useAuth();
+  console.log("is authenticated",isAuthenticated)
 
+  // Show loading screen while checking authentication
   if (authStatus === 'loading') {
-    return (
-      <div className="flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!isAuthenticated) {
@@ -54,9 +58,7 @@ function App() {
       <Router>
         <ApiProvider>
           <GenesisProvider>
-            <TokensProvider>
-              <AppRoutes />
-            </TokensProvider>
+            <AppRoutes />
           </GenesisProvider>
         </ApiProvider>
       </Router>

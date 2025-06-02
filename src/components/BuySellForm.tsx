@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Zap, Info, TrendingUp, TrendingDown, Clock } from 'lucide-react';
 import { GenesisLaunch } from '../context/GenesisContext';
 import { tokens } from '../data/supportedTokens';
+import { useAuth } from '../context/AuthContext';
 
 interface BuySellFormProps {
     project: GenesisLaunch;
@@ -12,6 +13,7 @@ interface BuySellFormProps {
 
 export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClose }) => {
     const [amount, setAmount] = useState<string>('');
+    const {jwt} = useAuth()
     const [token, setToken] = useState<string>('BASE_ETH');
     const [isBuying, setIsBuying] = useState<boolean>(true);
     const [showTokenDropdown, setShowTokenDropdown] = useState(false);
@@ -32,9 +34,6 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
         tokenContractAddress: project.virtual.tokenAddress ,
         decimals: 18,
     };
-
-    // Get user wallet address from localStorage or context (update as needed)
-    // const userWalletAddress = localStorage.getItem('walletAddress') || '';
 
     useEffect(() => {
         if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
@@ -63,10 +62,10 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                 }
                 // Convert amount to BN
                 const amountInBN = (BigInt(Math.floor(Number(amount) * Math.pow(10, decimals)))).toString();
-                const url = `http://localhost:3000/api/v1/swapquote?chainId=${chainId}&fromTokenAddress=${fromTokenAddress}&toTokenAddress=${toTokenAddress}&amountInBN=${amountInBN}&slippage=${slippage}&userWalletAddress=0x3B35C042Ae25FE3d262158ec885CF7e042C58C42`;
+                const url = `${import.meta.env.VITE_BACKEND_URL}/swapquote?chainId=${chainId}&fromTokenAddress=${fromTokenAddress}&toTokenAddress=${toTokenAddress}&amountInBN=${amountInBN}&slippage=${slippage}&userWalletAddress=0x3B35C042Ae25FE3d262158ec885CF7e042C58C42`;
                 const res = await axios.get(url, {
                     headers: {
-                        'authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGF0SWQiOiI2NDY5MDUwMjI1Iiwid2FsbGV0cyI6eyJiYXNlIjoiMHgzQjM1QzA0MkFlMjVGRTNkMjYyMTU4ZWM4ODVDRjdlMDQyQzU4QzQyIiwic29sYW5hIjoiOXg1a1liSmdKNldvSFFheUFEbVRZR2g5NFNiTGRibmVjS1A4YlJyN3g5dU0ifSwiaWF0IjoxNzQ4ODQ2NjE0LCJleHAiOjE3NDk0NTE0MTR9.1l21I1-EEkgOYyh-P36xPli--3K7OSy6O9RmHCSHSIo'
+                        'authorization': `Bearer ${jwt}`
                     }
                 });
                 if (res.data && res.data.success && res.data.data) {

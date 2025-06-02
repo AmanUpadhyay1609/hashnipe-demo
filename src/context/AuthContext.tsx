@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const verifyAuthentication = async (token: string) => {
         try {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
