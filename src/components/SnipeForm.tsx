@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { X, Zap, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GenesisLaunch } from '../context/GenesisContext';
+import { agentService, VIRTUALS_TOKEN_ADDRESS } from '../api/snipe';
+import { toast } from 'react-hot-toast';
 import { differenceInSeconds, format } from 'date-fns';
+import { ethers } from 'ethers';
+import { useAuth } from '../context/AuthContext';
 
 // CountdownTimer component
 const CountdownTimer: React.FC<{ project: GenesisLaunch }> = ({ project }) => {
@@ -52,20 +56,68 @@ const CountdownTimer: React.FC<{ project: GenesisLaunch }> = ({ project }) => {
 interface SnipeFormProps {
     project: GenesisLaunch;
     isOpen: boolean;
+    onSnipe: any;
     onClose: () => void;
-    onSnipe: (amount: number) => void;
     className?: string;
 }
 
 export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, onSnipe, className }) => {
+    const { decodedToken,Provider } = useAuth()
     const [amount, setAmount] = useState<string>('');
-
-    const handleSubmit = (e: React.FormEvent) => {
+    const [isLoading, setIsLoading] = useState(false);
+    
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!Provider) {
+            toast.error('Please connect your wallet first');
+            return;
+        }
+
         const numAmount = parseFloat(amount);
-        if (!isNaN(numAmount) && numAmount > 0) {
-            onSnipe(numAmount);
-            onClose();
+        if (isNaN(numAmount) || numAmount <= 0) {
+            toast.error('Please enter a valid amount');
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            // console.log("Provider",Provider)
+            // First deposit VIRTUAL tokens
+            await agentService.deposit({
+                tokenAddress: VIRTUALS_TOKEN_ADDRESS,
+                amount: amount,
+                provider: Provider
+            });
+
+            // // Then create agent for snipe
+            const fee = numAmount * 0.003; // 0.3% = 0.003
+            const adjustedAmount = (numAmount - fee).toString();
+
+            const agentRequest = {
+                genesisId: project.genesisId.toString(),
+                name: project.virtual.name,
+                walletAddress: decodedToken.wallets.base,
+                token: "virtual" as const,
+                amount: ethers.parseUnits(adjustedAmount, 18).toString(),
+                launchTime: project.endsAt,
+                marketCap: "1"
+            };
+
+            const response = await agentService.createAgent(agentRequest);
+
+            if (response.success) {
+                toast.success('Snipe set successfully!');
+                onClose();
+            } else {
+                throw new Error(response.message);
+            }
+
+        } catch (error) {
+            console.error('Snipe error:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to set up snipe');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -116,6 +168,23 @@ export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, 
                                 </div>
                             </div>
 
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full py-3 px-4 rounded-lg bg-primary-500 text-white font-medium 
+                                    hover:bg-primary-600 transition-colors flex items-center justify-center 
+                                    space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isLoading ? (
+                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                                ) : (
+                                    <>
+                                        <Zap size={18} />
+                                        <span>Confirm Snipe</span>
+                                    </>
+                                )}
+                            </button>
+
                             <div className="bg-dark-400/50 rounded-lg p-4">
                                 <div className="flex items-start space-x-3">
                                     <Info size={18} className="text-primary-400 mt-0.5 flex-shrink-0" />
@@ -125,14 +194,6 @@ export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, 
                                     </div>
                                 </div>
                             </div>
-
-                            <button
-                                type="submit"
-                                className="w-full py-3 px-4 rounded-lg bg-primary-500 text-white font-medium hover:bg-primary-600 transition-colors flex items-center justify-center space-x-2"
-                            >
-                                <Zap size={18} />
-                                <span>Confirm Snipe</span>
-                            </button>
                         </form>
                     </div>
                 </>

@@ -2,13 +2,16 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 
+// Add provider type to DecodedToken interface
 interface DecodedToken {
     chatId?: string;
     wallets?: { base: string, solana: string };
     exp: number;
     iat: number;
+    provider?: boolean;
 }
 
+// Add provider status to context
 interface AuthContextType {
     isAuthenticated: boolean;
     jwt: string | null;
@@ -16,6 +19,7 @@ interface AuthContextType {
     setJwt: (token: string) => void;
     logout: () => void;
     authStatus: 'loading' | 'authenticated' | 'unauthenticated';
+    Provider: any;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,6 +42,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const [authStatus, setAuthStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
 
+    // Add provider state
+    const [Provider, setProvider] = useState('');
+
     const verifyAuthentication = async (token: string) => {
         try {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/`, {
@@ -49,10 +56,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             });
 
             if (response.status === 200) {
+                // Check provider status
+                if (decodedToken?.chatId) {
+                    const providerResponse = await fetch(
+                        `${import.meta.env.VITE_BACKEND_URL}/provider/${decodedToken.chatId}`,
+                        {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        }
+                    );
+
+                    if (providerResponse.ok) {
+                        const data = await providerResponse.json();
+                        console.log("provider",data.provider)
+                        setProvider(data.provider);
+                    }
+                }
+
                 setAuthStatus('authenticated');
                 return true;
             } else if (response.status === 401) {
                 setAuthStatus('unauthenticated');
+                setProvider('');
                 logout();
                 return false;
             }
@@ -84,14 +112,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    // Modify logout to clear provider status
     const logout = () => {
         Cookies.remove('auth_token');
         setJwtState(null);
         setDecodedToken(null);
+        setProvider('');
     };
 
     const isAuthenticated = authStatus === 'authenticated';
 
+    // Update context provider value
     return (
         <AuthContext.Provider value={{
             isAuthenticated,
@@ -99,7 +130,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             decodedToken,
             setJwt,
             logout,
-            authStatus
+            authStatus,
+            Provider,
         }}>
             {children}
         </AuthContext.Provider>

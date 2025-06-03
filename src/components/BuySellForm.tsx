@@ -6,7 +6,7 @@ import { tokens } from '../data/supportedTokens';
 import { useAuth } from '../context/AuthContext';
 
 interface BuySellFormProps {
-    project: GenesisLaunch;
+    project: any;
     isOpen: boolean;
     onClose: () => void;
 }
@@ -22,11 +22,6 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
     const [quoteError, setQuoteError] = useState<string | null>(null);
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-    // const { tokens, loading: tokensLoading, error: tokensError } = useTokens();
-
-    console.log(tokens, '<-----------tokens from buy sell form');
-
-    // Helper to get token info by symbol
     const getTokenInfo = (symbol: string) => tokens.find(t => t.tokenSymbol === symbol);
     const selectedTokenInfo = getTokenInfo(token);
     const projectTokenInfo = {
