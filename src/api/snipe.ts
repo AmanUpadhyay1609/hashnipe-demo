@@ -118,6 +118,8 @@ class AgentService {
 
             // Convert amount to wei (18 decimals)
             const amountInWei = ethers.parseUnits(amount, 18);
+            console.log("amountInWei", amountInWei, tokenAddress)
+            console.log("provider", signer)
 
             // Check if it's ETH deposit
             const isEth = tokenAddress !== VIRTUALS_TOKEN_ADDRESS;
@@ -130,7 +132,7 @@ class AgentService {
                     signer
                 );
 
-                console.log('Approving VIRTUAL tokens...');
+                console.log('Approving VIRTUAL tokens...', tokenContract);
                 const approveTx = await tokenContract.approve(
                     this.contract, // SnipeContract address
                     amountInWei

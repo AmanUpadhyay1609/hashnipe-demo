@@ -19,7 +19,6 @@ interface AuthContextType {
     setJwt: (token: string) => void;
     logout: () => void;
     authStatus: 'loading' | 'authenticated' | 'unauthenticated';
-    Provider: any;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,31 +55,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             });
 
             if (response.status === 200) {
-                // Check provider status
-                if (decodedToken?.chatId) {
-                    const providerResponse = await fetch(
-                        `${import.meta.env.VITE_BACKEND_URL}/provider/${decodedToken.chatId}`,
-                        {
-                            method: 'GET',
-                            headers: {
-                                'Authorization': `Bearer ${token}`,
-                                'Content-Type': 'application/json'
-                            }
-                        }
-                    );
-
-                    if (providerResponse.ok) {
-                        const data = await providerResponse.json();
-                        console.log("provider",data.provider)
-                        setProvider(data.provider);
-                    }
-                }
-
                 setAuthStatus('authenticated');
                 return true;
             } else if (response.status === 401) {
                 setAuthStatus('unauthenticated');
-                setProvider('');
                 logout();
                 return false;
             }
@@ -117,7 +95,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         Cookies.remove('auth_token');
         setJwtState(null);
         setDecodedToken(null);
-        setProvider('');
     };
 
     const isAuthenticated = authStatus === 'authenticated';
@@ -131,7 +108,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setJwt,
             logout,
             authStatus,
-            Provider,
         }}>
             {children}
         </AuthContext.Provider>

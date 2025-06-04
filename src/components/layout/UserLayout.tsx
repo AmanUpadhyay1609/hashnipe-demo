@@ -18,6 +18,7 @@ import {
     Copy
 } from 'lucide-react';
 import { shortenAddress } from './Header';
+import { useApi } from '../../context/ApiContext';
 
 interface UserLayoutProps {
     children: ReactNode;
@@ -31,6 +32,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
     const { decodedToken, logout } = useAuth();
     const location = useLocation();
     const [copied, setCopied] = useState(false);
+    const {virtualBalance} = useApi()
 
     const username = decodedToken?.wallets?.base || 'User';
     const handleCopyUsername = async () => {
@@ -163,10 +165,24 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                         </div>
                     </div>
                     <div className="flex items-center space-x-2 md:space-x-4 ml-2 md:ml-6">
+                        {/* Virtual Balance Display */}
+                        <div className="hidden md:flex items-center space-x-2 bg-dark-300 px-3 py-1 rounded-lg">
+                            <Wallet size={16} className="text-primary-400" />
+                            <span className="text-light-300 text-xs font-normal">
+                                {Number(virtualBalance).toLocaleString(undefined, {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })} VIRTUAL
+                            </span>
+                        </div>
+
+                        {/* Notifications Button */}
                         <button className="p-2 rounded-lg hover:bg-dark-300 transition-colors relative">
                             <Bell size={20} className="text-light-400" />
                             <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-primary-500"></span>
                         </button>
+
+                        {/* Username/Address Display */}
                         <div className="flex items-center space-x-2 md:space-x-4">
                             <button
                                 onClick={handleCopyUsername}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { X, Zap, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GenesisLaunch } from '../context/GenesisContext';
@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import { differenceInSeconds, format } from 'date-fns';
 import { ethers } from 'ethers';
 import { useAuth } from '../context/AuthContext';
+import { useApi } from '../context/ApiContext';
 
 // CountdownTimer component
 const CountdownTimer: React.FC<{ project: GenesisLaunch }> = ({ project }) => {
@@ -62,60 +63,102 @@ interface SnipeFormProps {
 }
 
 export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, onSnipe, className }) => {
-    const { decodedToken,Provider } = useAuth()
+    const { decodedToken, jwt } = useAuth();
+    const { virtualBalance } = useApi(); // Add this to get virtual balance
     const [amount, setAmount] = useState<string>('');
     const [isLoading, setIsLoading] = useState(false);
-    
+    const [error, setError] = useState<string>('');
+
+    // Validate amount whenever it changes
+    const validateAmount = useCallback((value: string) => {
+        const numAmount = parseFloat(value);
+        const numBalance = parseFloat(virtualBalance);
+
+        if (isNaN(numAmount) || numAmount <= 0) {
+            setError('Please enter a valid amount');
+            return false;
+        }
+
+        if (numAmount > numBalance) {
+            setError('Insufficient VIRTUAL balance');
+            return false;
+        }
+
+        setError('');
+        return true;
+    }, [virtualBalance]);
+
+    // Handle amount change
+    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setAmount(value);
+        validateAmount(value);
+    };
+
+    // Check if button should be disabled
+    const isButtonDisabled = useMemo(() => {
+        const numAmount = parseFloat(amount);
+        return isLoading ||
+            isNaN(numAmount) ||
+            numAmount <= 0 ||
+            numAmount > parseFloat(virtualBalance) ||
+            !!error;
+    }, [amount, isLoading, virtualBalance, error]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!Provider) {
-            toast.error('Please connect your wallet first');
+        if (!decodedToken?.wallets?.base) {
+            toast.error('Wallet not connected');
             return;
         }
 
         const numAmount = parseFloat(amount);
-        if (isNaN(numAmount) || numAmount <= 0) {
-            toast.error('Please enter a valid amount');
+        if (!validateAmount(amount)) {
             return;
         }
 
         setIsLoading(true);
         try {
-            // console.log("Provider",Provider)
-            // First deposit VIRTUAL tokens
-            await agentService.deposit({
-                tokenAddress: VIRTUALS_TOKEN_ADDRESS,
-                amount: amount,
-                provider: Provider
+            if (!jwt) {
+                throw new Error('Authentication token not found');
+            }
+
+            const snipeResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/trade/snipe`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${jwt}`
+                },
+                body: JSON.stringify({
+                    genesisId: project.genesisId.toString(),
+                    name: project.virtual.name,
+                    walletAddress: decodedToken.wallets.base,
+                    token: "virtual",
+                    amount: numAmount.toString(),
+                    launchTime: new Date(project.endsAt).toISOString(),
+                    marketCap: "1000000",
+                })
             });
 
-            // // Then create agent for snipe
-            const fee = numAmount * 0.003; // 0.3% = 0.003
-            const adjustedAmount = (numAmount - fee).toString();
-
-            const agentRequest = {
-                genesisId: project.genesisId.toString(),
-                name: project.virtual.name,
-                walletAddress: decodedToken.wallets.base,
-                token: "virtual" as const,
-                amount: ethers.parseUnits(adjustedAmount, 18).toString(),
-                launchTime: project.endsAt,
-                marketCap: "1"
-            };
-
-            const response = await agentService.createAgent(agentRequest);
-
-            if (response.success) {
-                toast.success('Snipe set successfully!');
-                onClose();
-            } else {
-                throw new Error(response.message);
+            if (!snipeResponse.ok) {
+                const errorData = await snipeResponse.json();
+                throw new Error(errorData.message || 'Failed to set up snipe');
             }
+
+            const result = await snipeResponse.json();
+
+            toast.success('Snipe set successfully!');
+            onSnipe(result.data);
+            onClose();
 
         } catch (error) {
             console.error('Snipe error:', error);
-            toast.error(error instanceof Error ? error.message : 'Failed to set up snipe');
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : 'Failed to set up snipe'
+            );
         } finally {
             setIsLoading(false);
         }
@@ -155,9 +198,10 @@ export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, 
                                         type="number"
                                         id="amount"
                                         value={amount}
-                                        onChange={(e) => setAmount(e.target.value)}
+                                        onChange={handleAmountChange}
                                         placeholder="0.00"
-                                        className="w-full p-3 rounded-lg bg-dark-400 border border-dark-200 text-white placeholder-light-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+                                        className={`w-full p-3 rounded-lg bg-dark-400 border ${error ? 'border-error-500' : 'border-dark-200'
+                                            } text-white placeholder-light-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50`}
                                         min="0"
                                         step="0.01"
                                         required
@@ -166,11 +210,19 @@ export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, 
                                         VIRTUAL
                                     </div>
                                 </div>
+                                {error && (
+                                    <p className="mt-1 text-sm text-error-500">
+                                        {error}
+                                    </p>
+                                )}
+                                <p className="mt-1 text-sm text-light-400">
+                                    Balance: {Number(virtualBalance).toLocaleString()} VIRTUAL
+                                </p>
                             </div>
 
                             <button
                                 type="submit"
-                                disabled={isLoading}
+                                disabled={isButtonDisabled}
                                 className="w-full py-3 px-4 rounded-lg bg-primary-500 text-white font-medium 
                                     hover:bg-primary-600 transition-colors flex items-center justify-center 
                                     space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
