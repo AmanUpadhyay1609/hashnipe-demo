@@ -1,4 +1,11 @@
-export const tokens = [
+export const Suportedtokens = [
+  {
+    decimals: '18',
+    tokenContractAddress: '0x0b3e328455c4059EEb9e3f84b5543F74E24e7E1b',
+    tokenLogoUrl: 'https://web3.okx.com/cdn/web3/currency/token/small/1-0x44ff8620b8ca30902395a7bd3f2407e1a091bf73-96',
+    tokenName: 'Virtual Protocol',
+    tokenSymbol: 'VIRTUAL'
+  },
   {
     decimals: '6',
     tokenContractAddress: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
@@ -447,4 +454,14 @@ export const tokens = [
     tokenName: 'mfercoin',
     tokenSymbol: '$mfer'
   }
+]
+
+export const VirtualToken = [
+  {
+    decimals: '18',
+    tokenContractAddress: '0x0b3e328455c4059EEb9e3f84b5543F74E24e7E1b',
+    tokenLogoUrl: 'https://web3.okx.com/cdn/web3/currency/token/small/1-0x44ff8620b8ca30902395a7bd3f2407e1a091bf73-96',
+    tokenName: 'Virtual Protocol',
+    tokenSymbol: 'VIRTUAL'
+  },
 ]

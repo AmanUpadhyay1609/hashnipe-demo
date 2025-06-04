@@ -6,6 +6,7 @@ import { useAuth } from './AuthContext';
 // Define types
 interface ApiContextType {
     getToken: (chainId: string | number) => Promise<any>;
+    getBalance: (tokenAddress: string, walletAddress: string) => Promise<any>,
     virtualBalance: string;
     isLoadingBalance: boolean;
     errorBalance: string | null;
@@ -50,7 +51,7 @@ export function ApiProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
-    const getVirtualBalance = useCallback(async (
+    const getBalance = useCallback(async (
         tokenAddress: string,
         walletAddress: string
     ): Promise<any> => {
@@ -60,11 +61,12 @@ export function ApiProvider({ children }: { children: React.ReactNode }) {
         }
 
         const response = await fetch(
-            `https://api.virtuals.io/api/dex/balance-of/${tokenAddress}/${walletAddress}`,
+            `${BaseUrl}/getBalance?tokenAddress=${tokenAddress}&walletAddress=${walletAddress}`,
             {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
                 }
             }
         );
@@ -75,7 +77,7 @@ export function ApiProvider({ children }: { children: React.ReactNode }) {
 
         const data = await response.json();
 
-        return data.data.balance;
+        return data.data.formattedBalance;
     }, []);
 
     const fetchBalance = useCallback(async () => {
@@ -85,7 +87,7 @@ export function ApiProvider({ children }: { children: React.ReactNode }) {
         setErrorBalance(null);
 
         try {
-            const response = await getVirtualBalance(
+            const response = await getBalance(
                 VIRTUAL_TOKEN_ADDRESS,
                 decodedToken.wallets.base
             );
@@ -98,7 +100,7 @@ export function ApiProvider({ children }: { children: React.ReactNode }) {
         } finally {
             setIsLoadingBalance(false);
         }
-    }, [isAuthenticated, decodedToken?.wallets?.base, getVirtualBalance]);
+    }, [isAuthenticated, decodedToken?.wallets?.base, getBalance]);
 
     // Fetch balance on mount and when auth state changes
     useEffect(() => {
@@ -108,6 +110,7 @@ export function ApiProvider({ children }: { children: React.ReactNode }) {
     return (
         <ApiContext.Provider value={{
             getToken,
+            getBalance,
             virtualBalance,
             isLoadingBalance,
             errorBalance,

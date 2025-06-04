@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { TokenListPage } from './TokenListPage';
 import { TokenPage } from '../components/TokenList/TokenPage';
 import { PrototypePage } from '../components/TokenList/PrototypePage';
-import { getToken } from '../api/backend';
 import { useGenesis } from '../context/GenesisContext';
 import { useAuth } from '../context/AuthContext';
 

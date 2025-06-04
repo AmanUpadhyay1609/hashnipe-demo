@@ -1,32 +1,38 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { Zap, Info, TrendingUp, TrendingDown, Clock } from 'lucide-react';
-import { GenesisLaunch } from '../context/GenesisContext';
-import { tokens } from '../data/supportedTokens';
+import { Suportedtokens, VirtualToken } from '../data/supportedTokens';
 import { useAuth } from '../context/AuthContext';
+import { useApi } from '../context/ApiContext';
+import { ethers } from 'ethers';
 
 interface BuySellFormProps {
     project: any;
     isOpen: boolean;
+    type: any;
     onClose: () => void;
 }
 
-export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClose }) => {
+export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClose, type }) => {
     const [amount, setAmount] = useState<string>('');
-    const {jwt} = useAuth()
-    const [token, setToken] = useState<string>('BASE_ETH');
+    const { jwt, decodedToken } = useAuth()
+    const { getBalance } = useApi();
+    const [token, setToken] = useState<string>('VIRTUAL');
     const [isBuying, setIsBuying] = useState<boolean>(true);
     const [showTokenDropdown, setShowTokenDropdown] = useState(false);
     const [quote, setQuote] = useState<string>('');
     const [quoteLoading, setQuoteLoading] = useState(false);
     const [quoteError, setQuoteError] = useState<string | null>(null);
+    const [tokenBalance, setTokenBalance] = useState<string>('0');
+    const [projectBalance, setProjectBalance] = useState<string>('0');
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
-
+    const tokens = type == '' ? Suportedtokens : VirtualToken
     const getTokenInfo = (symbol: string) => tokens.find(t => t.tokenSymbol === symbol);
     const selectedTokenInfo = getTokenInfo(token);
+
     const projectTokenInfo = {
         tokenSymbol: project.virtual.symbol,
-        tokenContractAddress: project.virtual.tokenAddress ,
+        tokenContractAddress: project.virtual.tokenAddress,
         decimals: 18,
     };
 
@@ -84,6 +90,34 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
         };
     }, [amount, token, isBuying, projectTokenInfo.decimals, projectTokenInfo.tokenContractAddress, selectedTokenInfo?.decimals, selectedTokenInfo?.tokenContractAddress]);
 
+    useEffect(() => {
+        const fetchBalances = async () => {
+            try {
+                // Fetch selected token balance
+                if (selectedTokenInfo?.tokenContractAddress && decodedToken?.wallets?.base) {
+                    const balance = await getBalance(
+                        selectedTokenInfo.tokenContractAddress,
+                        decodedToken.wallets.base
+                    );
+                    setTokenBalance(balance);
+                }
+
+                // Fetch project token balance
+                if (project.virtual.tokenAddress && decodedToken?.wallets?.base) {
+                    const balance = await getBalance(
+                        project.virtual.tokenAddress,
+                        decodedToken.wallets.base
+                    );
+                    setProjectBalance(balance.balance);
+                }
+            } catch (error) {
+                console.error('Error fetching balances:', error);
+            }
+        };
+
+        fetchBalances();
+    }, [token, decodedToken?.wallets?.base, project.virtual.tokenAddress]);
+
     const selectedToken = tokens.find(t => t.tokenSymbol === token);
 
     const handleTokenSelect = (tokenSymbol: string) => {
@@ -95,6 +129,26 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
         console.log(`${isBuying ? 'Buying' : 'Selling'} ${project.virtual.name} with ${amount} ${token}`);
         onClose();
     };
+
+    const validateAmount = useCallback((value: string) => {
+        const numAmount = parseFloat(value);
+        const maxBalance = isBuying
+            ? parseFloat(ethers.formatUnits(tokenBalance, selectedTokenInfo?.decimals || 18))
+            : parseFloat(ethers.formatUnits(projectBalance, project.virtual.decimals || 18));
+
+        if (isNaN(numAmount) || numAmount <= 0) {
+            setError('Please enter a valid amount');
+            return false;
+        }
+
+        if (numAmount > maxBalance) {
+            setError(`Insufficient ${isBuying ? selectedTokenInfo?.tokenSymbol : project.virtual.symbol} balance`);
+            return false;
+        }
+
+        setError('');
+        return true;
+    }, [isBuying, tokenBalance, projectBalance, selectedTokenInfo, project.virtual]);
 
     if (!isOpen) return null;
 
@@ -156,9 +210,13 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                     <div className="flex justify-between items-center">
                         <label className="text-sm text-light-400">Amount</label>
                         {isBuying ? (
-                            <span className="text-xs text-light-500">Available: 0.00 {token}</span>
+                            <span className="text-xs text-light-500">
+                                Available: {tokenBalance || '0'} {token}
+                            </span>
                         ) : (
-                            <span className="text-xs text-light-500">Balance: 0.00 {project.virtual.symbol}</span>
+                            <span className="text-xs text-light-500">
+                                Balance: {projectBalance || '0'} {project.virtual.symbol}
+                            </span>
                         )}
                     </div>
                     <div className="flex items-center space-x-2 bg-dark-400 rounded-lg p-3">
@@ -176,7 +234,7 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                                     className="bg-dark-300 text-white px-3 py-1 rounded-md focus:outline-none flex items-center space-x-2"
 
                                 >
-                                    { selectedToken ? (
+                                    {selectedToken ? (
                                         <>
                                             <img
                                                 src={selectedToken.tokenLogoUrl}
@@ -187,7 +245,7 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                                         </>
                                     ) : null}
                                 </button>
-                                {showTokenDropdown  && (
+                                {showTokenDropdown && (
                                     <div className="absolute right-0 mt-2 w-48 bg-dark-500 rounded-lg border border-dark-300 shadow-xl z-50">
                                         <div className="p-2 max-h-60 overflow-y-auto">
                                             {tokens.map((token) => (
@@ -277,3 +335,7 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
         </div>
     );
 };
+
+function setError(arg0: string) {
+    throw new Error('Function not implemented.');
+}

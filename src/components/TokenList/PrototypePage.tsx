@@ -154,6 +154,7 @@ export const PrototypePage: React.FC = () => {
                                 project={{ virtual: selectedProject }}
                                 isOpen={true}
                                 onClose={() => { }}
+                                type='protype'
                             />
 
                             {/* Trade Data Panel */}

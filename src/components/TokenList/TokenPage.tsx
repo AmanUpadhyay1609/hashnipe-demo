@@ -135,6 +135,7 @@ export const TokenPage: React.FC = () => {
                                 project={{ virtual: selectedProject }}
                                 isOpen={true}
                                 onClose={() => { }}
+                                type=''
                             />
 
                             {/* Trade Data Panel */}

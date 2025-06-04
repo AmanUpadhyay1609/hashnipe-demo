@@ -327,7 +327,7 @@ export const TokenListPage: React.FC = () => {
               </div>
               <div className="relative w-48 min-w-[180px]">
                 <select
-                  className="w-full p-2 rounded-lg bg-dark-400 border border-dark-200 text-light-300 appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+                  className="w-full p-2 rounded-lg bg-dark-400 border border-dark-200 text-light-300 appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500/50 [&>option]:py-2 [&>option]:px-4"
                   value={sortOption}
                   onChange={(e) => setSortOption(e.target.value)}
                 >
@@ -517,7 +517,7 @@ export const TokenListPage: React.FC = () => {
                               {isActive && (
                                 <button
                                   onClick={() => handleSnipe(project)}
-                                  className="p-1.5 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+                                  className="p-1.5 m-2 rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors"
                                   title="Snipe at launch"
                                 >
                                   <Zap size={16} />
@@ -525,8 +525,7 @@ export const TokenListPage: React.FC = () => {
                               )}
                               {isUpcoming && (
                                 <button
-                                  onClick={() => handleSubscribe(project)}
-                                  className="p-1.5 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
+                                  className="p-1.5 m-2 rounded-full bg-secondary-500 text-white hover:bg-secondary-600 transition-colors"
                                   title="Subscribe"
                                 >
                                   <Clock size={16} />
@@ -535,19 +534,12 @@ export const TokenListPage: React.FC = () => {
                               {project.status === 'FINALIZED' && (
                                 <button
                                   onClick={() => handleTrade(project)}
-                                  className="p-1.5 rounded-full bg-success-500 text-white hover:bg-success-600 transition-colors"
+                                  className="p-1.5 m-2 rounded-full bg-success-500 text-white hover:bg-success-600 transition-colors"
                                   title="Trade on Base"
                                 >
                                   <DollarSign size={16} />
                                 </button>
                               )}
-                              <Link
-                                to={`/tokens/${project.id}`}
-                                className="p-1.5 rounded-full bg-dark-300 text-light-300 hover:bg-dark-200 transition-colors"
-                                title="View details"
-                              >
-                                <ArrowRight size={16} />
-                              </Link>
                             </div>
                           </div>
                           {/* Mobile View */}
@@ -707,6 +699,7 @@ export const TokenListPage: React.FC = () => {
                     project={activeForm.project}
                     isOpen={true}
                     onClose={handleTradeClose}
+                    type=''
                   />
                 ) : (
                   <SnipeForm
