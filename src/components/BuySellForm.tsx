@@ -25,6 +25,7 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
     const [quoteError, setQuoteError] = useState<string | null>(null);
     const [tokenBalance, setTokenBalance] = useState<string>('0');
     const [projectBalance, setProjectBalance] = useState<string>('0');
+    const [error, setError] = useState<string>('');
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
     const tokens = type == '' ? Suportedtokens : VirtualToken
     const getTokenInfo = (symbol: string) => tokens.find(t => t.tokenSymbol === symbol);
@@ -108,7 +109,7 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                         project.virtual.tokenAddress,
                         decodedToken.wallets.base
                     );
-                    setProjectBalance(balance.balance);
+                    setProjectBalance(balance);
                 }
             } catch (error) {
                 console.error('Error fetching balances:', error);
@@ -126,15 +127,31 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
     };
 
     const handleTrade = () => {
+        if (!validateAmount(amount)) {
+            return;
+        }
+
         console.log(`${isBuying ? 'Buying' : 'Selling'} ${project.virtual.name} with ${amount} ${token}`);
         onClose();
+    };
+
+    const handlePercentageSelect = (percentage: number) => {
+        if (!isBuying) {
+            const maxBalance = parseFloat(projectBalance);
+            const calculatedAmount = (maxBalance * percentage / 100).toFixed(6);
+            setAmount(calculatedAmount);
+        } else {
+            const maxBalance = parseFloat(tokenBalance);
+            const calculatedAmount = (maxBalance * percentage / 100).toFixed(6);
+            setAmount(calculatedAmount);
+        }
     };
 
     const validateAmount = useCallback((value: string) => {
         const numAmount = parseFloat(value);
         const maxBalance = isBuying
-            ? parseFloat(ethers.formatUnits(tokenBalance, selectedTokenInfo?.decimals || 18))
-            : parseFloat(ethers.formatUnits(projectBalance, project.virtual.decimals || 18));
+            ? parseFloat(tokenBalance)
+            : parseFloat(projectBalance);
 
         if (isNaN(numAmount) || numAmount <= 0) {
             setError('Please enter a valid amount');
@@ -211,77 +228,105 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                         <label className="text-sm text-light-400">Amount</label>
                         {isBuying ? (
                             <span className="text-xs text-light-500">
-                                Available: {tokenBalance || '0'} {token}
+                                Available: {tokenBalance} {token}
                             </span>
                         ) : (
                             <span className="text-xs text-light-500">
-                                Balance: {projectBalance || '0'} {project.virtual.symbol}
+                                Balance: {projectBalance} {project.virtual.symbol}
                             </span>
                         )}
                     </div>
-                    <div className="flex items-center space-x-2 bg-dark-400 rounded-lg p-3">
-                        <input
-                            type="number"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
-                            placeholder="0.0"
-                            className="w-full bg-transparent text-white text-lg focus:outline-none"
-                        />
-                        {isBuying ? (
-                            <div className="relative">
-                                <button
-                                    onClick={() => setShowTokenDropdown(!showTokenDropdown)}
-                                    className="bg-dark-300 text-white px-3 py-1 rounded-md focus:outline-none flex items-center space-x-2"
+                    <div className="flex flex-col space-y-2">
+                        <div className="flex items-center space-x-2 bg-dark-400 rounded-lg p-3">
+                            <input
+                                type="number"
+                                value={amount}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setAmount(value);
+                                    validateAmount(value);
+                                }}
+                                placeholder="0.0"
+                                className={`w-full bg-transparent text-white text-lg focus:outline-none ${error ? 'text-error-500' : ''
+                                    }`}
+                            />
+                            {isBuying ? (
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowTokenDropdown(!showTokenDropdown)}
+                                        className="bg-dark-300 text-white px-3 py-1 rounded-md focus:outline-none flex items-center space-x-2"
 
-                                >
-                                    {selectedToken ? (
-                                        <>
-                                            <img
-                                                src={selectedToken.tokenLogoUrl}
-                                                alt={selectedToken.tokenSymbol}
-                                                className="w-5 h-5 rounded-full"
-                                            />
-                                            <span>{selectedToken.tokenSymbol}</span>
-                                        </>
-                                    ) : null}
-                                </button>
-                                {showTokenDropdown && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-dark-500 rounded-lg border border-dark-300 shadow-xl z-50">
-                                        <div className="p-2 max-h-60 overflow-y-auto">
-                                            {tokens.map((token) => (
-                                                <div
-                                                    key={token.tokenContractAddress}
-                                                    onClick={() => handleTokenSelect(token.tokenSymbol)}
-                                                    className="flex items-center space-x-3 p-2 hover:bg-dark-400 rounded-md cursor-pointer"
-                                                >
-                                                    <img
-                                                        src={token.tokenLogoUrl}
-                                                        alt={token.tokenSymbol}
-                                                        className="w-6 h-6 rounded-full"
-                                                    />
-                                                    <div className="flex flex-col">
-                                                        <span className="text-sm font-medium text-white">
-                                                            {token.tokenSymbol}
-                                                        </span>
-                                                        <span className="text-xs text-light-400">
-                                                            {token.tokenName}
-                                                        </span>
+                                    >
+                                        {selectedToken ? (
+                                            <>
+                                                <img
+                                                    src={selectedToken.tokenLogoUrl}
+                                                    alt={selectedToken.tokenSymbol}
+                                                    className="w-5 h-5 rounded-full"
+                                                />
+                                                <span>{selectedToken.tokenSymbol}</span>
+                                            </>
+                                        ) : null}
+                                    </button>
+                                    {showTokenDropdown && (
+                                        <div className="absolute right-0 mt-2 w-48 bg-dark-500 rounded-lg border border-dark-300 shadow-xl z-50">
+                                            <div className="p-2 max-h-60 overflow-y-auto">
+                                                {tokens.map((token) => (
+                                                    <div
+                                                        key={token.tokenContractAddress}
+                                                        onClick={() => handleTokenSelect(token.tokenSymbol)}
+                                                        className="flex items-center space-x-3 p-2 hover:bg-dark-400 rounded-md cursor-pointer"
+                                                    >
+                                                        <img
+                                                            src={token.tokenLogoUrl}
+                                                            alt={token.tokenSymbol}
+                                                            className="w-6 h-6 rounded-full"
+                                                        />
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-medium text-white">
+                                                                {token.tokenSymbol}
+                                                            </span>
+                                                            <span className="text-xs text-light-400">
+                                                                {token.tokenName}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="bg-dark-300 text-white px-3 py-1 rounded-md flex items-center space-x-2">
+                                    <img
+                                        src={project.virtual.image?.url}
+                                        alt={project.virtual.symbol}
+                                        className="w-5 h-5 rounded-full"
+                                    />
+                                    <span>{project.virtual.symbol}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Add percentage buttons */}
+                        {!isBuying && (
+                            <div className="flex space-x-2">
+                                {[25, 50, 75, 100].map((percentage) => (
+                                    <button
+                                        key={percentage}
+                                        onClick={() => handlePercentageSelect(percentage)}
+                                        className="flex-1 py-1 px-2 text-xs rounded bg-dark-300 text-light-300 hover:bg-dark-200 transition-colors"
+                                    >
+                                        {percentage}%
+                                    </button>
+                                ))}
                             </div>
-                        ) : (
-                            <div className="bg-dark-300 text-white px-3 py-1 rounded-md flex items-center space-x-2">
-                                <img
-                                    src={project.virtual.image?.url}
-                                    alt={project.virtual.symbol}
-                                    className="w-5 h-5 rounded-full"
-                                />
-                                <span>{project.virtual.symbol}</span>
-                            </div>
+                        )}
+
+                        {error && (
+                            <p className="text-xs text-error-500 mt-1">
+                                {error}
+                            </p>
                         )}
                     </div>
                 </div>
@@ -299,11 +344,33 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                         <span className="text-light-400">Network Fee</span>
                         <span className="text-light-300">~$0.50</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                        <span className="text-light-400">You will receive</span>
-                        <span className="text-light-300">
-                            {quoteLoading ? 'Fetching quote...' : quoteError ? quoteError : (quote || '0.00')} {isBuying ? project.virtual.symbol : (selectedTokenInfo?.tokenSymbol || token)}
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-light-400 flex items-center space-x-1">
+                            <Info size={14} className="text-light-500" />
+                            <span>You will receive</span>
                         </span>
+                        <div className="flex items-center space-x-2">
+                            {quoteLoading ? (
+                                <div className="flex items-center space-x-2">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-500" />
+                                    <span className="text-light-500">Fetching quote...</span>
+                                </div>
+                            ) : quoteError ? (
+                                <span className="text-error-400">{quoteError}</span>
+                            ) : (
+                                <div className="flex items-center space-x-2">
+                                    <span className="text-xl font-medium text-light-300">
+                                        {Number(quote || '0').toLocaleString(undefined, {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 6
+                                        })}
+                                    </span>
+                                    <span className="text-light-500">
+                                        {isBuying ? project.virtual.symbol : (selectedTokenInfo?.tokenSymbol || token)}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
