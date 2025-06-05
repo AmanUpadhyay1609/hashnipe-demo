@@ -16,7 +16,7 @@ const PortfolioPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const {decodedToken} = useAuth(); 
+  const { decodedToken } = useAuth();
 
 
   useEffect(() => {
@@ -27,7 +27,6 @@ const PortfolioPage: React.FC = () => {
           console.warn('No wallet address found in decodedToken or localStorage');
         }
 
-        console.log('Wallet Address:', walletAddress);
         if (!walletAddress) {
           throw new Error('Wallet address not found in localStorage');
         }
@@ -37,13 +36,14 @@ const PortfolioPage: React.FC = () => {
 
         // Fetch real tokens using your existing function
         const balances = await getAccountBalance(walletAddress);
+        console.log("Balances", balances)
         if (!balances) throw new Error('Failed to fetch token balances');
         const filteredToken = balances.result.filter((token: any) => {
           return token.usd_price > 0;
         });
-        
+
         setAllTokens(filteredToken ? filteredToken : []);
-       
+
         // Fetch virtual tokens
         const virtualResponse = await fetch(
           `https://api.virtuals.io/api/wallets/${walletAddress}/holdings`
@@ -103,15 +103,15 @@ const PortfolioPage: React.FC = () => {
           <Wallet className="w-6 h-6 sm:w-8 sm:h-8 mr-3 text-primary-400" />
           <h1 className="text-2xl sm:text-3xl font-bold text-primary-400">Portfolio</h1>
         </div>
-        
+
         <div className="mb-8">
-          <ToggleButtonGroup 
-            activeTab={activeTab} 
-            onTabChange={setActiveTab} 
+          <ToggleButtonGroup
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
             className="border-b border-dark-300"
           />
         </div>
-        
+
         {isLoading ? (
           <div className="bg-dark-400 rounded-xl p-6 sm:p-8">
             <div className="animate-pulse">
@@ -134,7 +134,7 @@ export default PortfolioPage;
 
 
 
- const getAccountBalance = async (address: string) => {
+const getAccountBalance = async (address: string) => {
   try {
     const options = {
       headers: {

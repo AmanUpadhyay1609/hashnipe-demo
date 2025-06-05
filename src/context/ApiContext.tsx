@@ -11,6 +11,16 @@ interface ApiContextType {
     isLoadingBalance: boolean;
     errorBalance: string | null;
     refreshBalance: () => Promise<void>;
+    swap: (params: SwapParams) => Promise<any>;
+}
+
+// Add the swap parameters interface
+interface SwapParams {
+    fromTokenAddress: string;
+    toTokenAddress: string;
+    amount: string;
+    slippage: number;
+    walletAddress: string;
 }
 
 const ApiContext = createContext<ApiContextType | undefined>(undefined);
@@ -102,6 +112,48 @@ export function ApiProvider({ children }: { children: React.ReactNode }) {
         }
     }, [isAuthenticated, decodedToken?.wallets?.base, getBalance]);
 
+    // Swap function
+    const swap = useCallback(async ({
+        fromTokenAddress,
+        toTokenAddress,
+        amount,
+        slippage,
+        walletAddress
+    }: SwapParams): Promise<any> => {
+        const authToken = Cookies.get('auth_token');
+        if (!authToken) {
+            throw new Error('Authentication token not found');
+        }
+
+        try {
+            const response = await fetch(`${BaseUrl}/api/v1/swap`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify({
+                    fromTokenAddress,
+                    toTokenAddress,
+                    amount,
+                    slippage,
+                    walletAddress
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Swap error:', error);
+            throw error;
+        }
+    }, []);
+
     // Fetch balance on mount and when auth state changes
     useEffect(() => {
         fetchBalance();
@@ -114,7 +166,8 @@ export function ApiProvider({ children }: { children: React.ReactNode }) {
             virtualBalance,
             isLoadingBalance,
             errorBalance,
-            refreshBalance: fetchBalance
+            refreshBalance: fetchBalance,
+            swap
         }}>
             {children}
         </ApiContext.Provider>

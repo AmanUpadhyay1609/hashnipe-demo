@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import TokenCard from './TokenCard';
 import VirtualTokenCard from './VirtualTokenCard';
-import { ChevronDown, ChevronUp, SortAsc } from 'lucide-react';
+import { ChevronDown, ChevronUp, SortAsc, Copy, Check } from 'lucide-react';
 
 interface TokenListProps {
   tokens: any[];
@@ -54,9 +54,11 @@ const TokenList: React.FC<TokenListProps> = ({ tokens, isVirtual = false }) => {
       <ChevronDown className="w-4 h-4" />;
   };
 
+
   const headerItems = isVirtual ? 
     [
       { id: 'name', label: 'AI Agent' },
+      { id: 'token_address', label: 'Address' },
       { id: 'amount', label: 'Amount' },
       { id: 'virtualTokenValue', label: 'VIRTUAL Value' },
       { id: 'usdValue', label: 'USD Value' }

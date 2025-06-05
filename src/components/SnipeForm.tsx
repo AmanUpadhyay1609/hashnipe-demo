@@ -62,12 +62,19 @@ interface SnipeFormProps {
     className?: string;
 }
 
+interface Notification {
+    type: 'success' | 'error';
+    message: string;
+    details?: string;
+}
+
 export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, onSnipe, className }) => {
     const { decodedToken, jwt } = useAuth();
     const { virtualBalance } = useApi(); // Add this to get virtual balance
     const [amount, setAmount] = useState<string>('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string>('');
+    const [notification, setNotification] = useState<Notification | null>(null);
 
     // Validate amount whenever it changes
     const validateAmount = useCallback((value: string) => {
@@ -109,7 +116,10 @@ export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, 
         e.preventDefault();
 
         if (!decodedToken?.wallets?.base) {
-            toast.error('Wallet not connected');
+            setNotification({
+                type: 'error',
+                message: 'Wallet not connected'
+            });
             return;
         }
 
@@ -124,7 +134,7 @@ export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, 
                 throw new Error('Authentication token not found');
             }
 
-            const snipeResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/trade/snipe`, {
+            const snipeResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/snipe`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -136,11 +146,12 @@ export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, 
                     walletAddress: decodedToken.wallets.base,
                     token: "virtual",
                     amount: numAmount.toString(),
-                    launchTime: new Date(project.endsAt).toISOString(),
+                    launchTime: project.endsAt,
                     marketCap: "1000000",
                 })
             });
 
+            console.log("snipe")
             if (!snipeResponse.ok) {
                 const errorData = await snipeResponse.json();
                 throw new Error(errorData.message || 'Failed to set up snipe');
@@ -148,20 +159,59 @@ export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, 
 
             const result = await snipeResponse.json();
 
-            toast.success('Snipe set successfully!');
-            onSnipe(result.data);
+            setNotification({
+                type: 'success',
+                message: `${Number(result.data.deposit.finalAmount).toLocaleString()} VIRTUAL will be used to snipe ${project.virtual.name}`,
+                details: `Launch Time: ${format(new Date(result.data.agent.launchTime), 'PPp')}`
+            });
+
+            onSnipe(result.data.agent);
             onClose();
 
         } catch (error) {
             console.error('Snipe error:', error);
-            toast.error(
-                error instanceof Error
-                    ? error.message
-                    : 'Failed to set up snipe'
-            );
+            setNotification({
+                type: 'error',
+                message: error instanceof Error ? error.message : 'Failed to set up snipe'
+            });
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const NotificationMessage: React.FC<{ notification: Notification; onClose: () => void }> = ({ notification, onClose }) => {
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className={`fixed bottom-4 right-4 max-w-md p-4 rounded-lg border ${notification.type === 'success'
+                        ? 'bg-dark-500 border-success-500/50 text-success-400'
+                        : 'bg-dark-500 border-error-500/50 text-error-400'
+                    }`}
+            >
+                <div className="flex items-start space-x-3">
+                    <span className="text-2xl">
+                        {notification.type === 'success' ? '🎯' : '⚠️'}
+                    </span>
+                    <div className="flex-1">
+                        <p className="font-medium">
+                            {notification.type === 'success' ? 'Snipe Set Successfully' : 'Snipe Failed'}
+                        </p>
+                        <p className="text-sm mt-1 text-light-300">{notification.message}</p>
+                        {notification.details && (
+                            <p className="text-xs mt-1 text-light-500">{notification.details}</p>
+                        )}
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="text-light-500 hover:text-light-300 transition-colors"
+                    >
+                        <X size={16} />
+                    </button>
+                </div>
+            </motion.div>
+        );
     };
 
     return (
@@ -201,9 +251,10 @@ export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, 
                                         onChange={handleAmountChange}
                                         placeholder="0.00"
                                         className={`w-full p-3 rounded-lg bg-dark-400 border ${error ? 'border-error-500' : 'border-dark-200'
-                                            } text-white placeholder-light-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50`}
+                                            } text-white placeholder-light-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50
+    [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
                                         min="0"
-                                        step="0.01"
+                                        step="0.00000001"
                                         required
                                     />
                                     <div className="absolute right-3 top-1/2 -translate-y-1/2 text-light-400">
@@ -249,6 +300,12 @@ export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, 
                         </form>
                     </div>
                 </>
+            )}
+            {notification && (
+                <NotificationMessage
+                    notification={notification}
+                    onClose={() => setNotification(null)}
+                />
             )}
         </AnimatePresence>
     );

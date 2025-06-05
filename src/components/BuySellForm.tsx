@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { Zap, Info, TrendingUp, TrendingDown, Clock } from 'lucide-react';
 import { Suportedtokens, VirtualToken } from '../data/supportedTokens';
@@ -126,13 +126,109 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
         setShowTokenDropdown(false);
     };
 
-    const handleTrade = () => {
-        if (!validateAmount(amount)) {
+    const handleSwapSuccess = (result: any) => {
+        const formattedAmount = Number(amount).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 6
+        });
+
+        const successMessage = (
+            <div className="flex flex-col space-y-1">
+                <span className="font-medium">
+                    {isBuying ? '🟢 Buy Success' : '🔴 Sell Success'}
+                </span>
+                <span className="text-sm opacity-90">
+                    {isBuying
+                        ? `Bought ${formattedAmount} ${project.virtual.symbol} for ${formattedAmount} ${selectedTokenInfo?.tokenSymbol}`
+                        : `Sold ${formattedAmount} ${project.virtual.symbol} for ${formattedAmount} ${selectedTokenInfo?.tokenSymbol}`
+                    }
+                </span>
+            </div>
+        );
+
+
+
+        onClose();
+    };
+
+    const handleSwapError = (error: unknown) => {
+        const errorMessage = (
+            <div className="flex flex-col space-y-1">
+                <span className="font-medium text-error-400">
+                    ⚠️ Swap Failed
+                </span>
+                <span className="text-sm opacity-90">
+                    {error instanceof Error
+                        ? error.message
+                        : 'Failed to execute swap. Please try again.'}
+                </span>
+            </div>
+        );
+    };
+
+    const handleTrade = async () => {
+        if (!validateAmount(amount) || !decodedToken?.wallets?.base) {
             return;
         }
 
-        console.log(`${isBuying ? 'Buying' : 'Selling'} ${project.virtual.name} with ${amount} ${token}`);
-        onClose();
+        try {
+            const fromTokenAddress = isBuying
+                ? selectedTokenInfo?.tokenContractAddress
+                : project.virtual.tokenAddress;
+            const toTokenAddress = isBuying
+                ? project.virtual.tokenAddress
+                : selectedTokenInfo?.tokenContractAddress;
+
+            if (!fromTokenAddress || !toTokenAddress) {
+                throw new Error('Invalid token addresses');
+            }
+
+            // Convert decimals to string
+            const decimals = (isBuying
+                ? selectedTokenInfo?.decimals || 18
+                : project.virtual.decimals || 18).toString();
+            console.log("decimals", decimals)
+
+            // Parse amount with string decimals
+            const amountInWei = ethers.parseUnits(amount, Number(decimals)).toString();
+            console.log("amountInWei", amountInWei)
+            const swapParams = {
+                chainId: "8453", // Fixed chain ID for Base
+                fromTokenAddress,
+                toTokenAddress,
+                amountInBN: amountInWei,
+                slippage: "0.5",
+                userWalletAddress: decodedToken.wallets.base
+            };
+
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/swap`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${jwt}`
+                },
+                body: JSON.stringify(swapParams)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Swap failed');
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                handleSwapSuccess(result);
+            } else {
+                throw new Error(result.message || 'Swap failed');
+            }
+        } catch (error) {
+            console.error('Swap error:', error);
+            handleSwapError(error);
+
+            // Reset loading state if you have one
+            setIsLoading(false);
+        }
     };
 
     const handlePercentageSelect = (percentage: number) => {
@@ -166,6 +262,22 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
         setError('');
         return true;
     }, [isBuying, tokenBalance, projectBalance, selectedTokenInfo, project.virtual]);
+
+    const isTradeDisabled = useMemo(() => {
+        const numAmount = parseFloat(amount);
+        const maxBalance = isBuying
+            ? parseFloat(tokenBalance)
+            : parseFloat(projectBalance);
+
+        return (
+            isNaN(numAmount) ||
+            numAmount <= 0 ||
+            numAmount > maxBalance ||
+            !!error ||
+            quoteLoading ||
+            !!quoteError
+        );
+    }, [amount, tokenBalance, projectBalance, error, quoteLoading, quoteError, isBuying]);
 
     if (!isOpen) return null;
 
@@ -377,14 +489,21 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
                 <div className="flex gap-2 mt-4">
                     <button
                         onClick={handleTrade}
+                        disabled={isTradeDisabled}
                         className={`flex-1 font-medium py-3 rounded-lg transition-colors flex items-center justify-center space-x-2
-                            ${isBuying
-                                ? 'bg-primary-500 hover:bg-primary-600 text-white'
-                                : 'bg-error-500 hover:bg-error-600 text-white'
+                            ${isTradeDisabled
+                                ? 'bg-dark-300 cursor-not-allowed text-light-500'
+                                : isBuying
+                                    ? 'bg-primary-500 hover:bg-primary-600 text-white'
+                                    : 'bg-error-500 hover:bg-error-600 text-white'
                             }`}
                     >
-                        <Zap size={18} />
-                        <span>{isBuying ? 'Buy' : 'Sell'} {project.virtual.symbol}</span>
+                        <Zap size={18} className={isTradeDisabled ? 'opacity-50' : ''} />
+                        <span>
+                            {isTradeDisabled
+                                ? 'Insufficient Amount'
+                                : `${isBuying ? 'Buy' : 'Sell'} ${project.virtual.symbol}`}
+                        </span>
                     </button>
                 </div>
 
@@ -406,3 +525,7 @@ export const BuySellForm: React.FC<BuySellFormProps> = ({ project, isOpen, onClo
 function setError(arg0: string) {
     throw new Error('Function not implemented.');
 }
+function setIsLoading(arg0: boolean) {
+    throw new Error('Function not implemented.');
+}
+

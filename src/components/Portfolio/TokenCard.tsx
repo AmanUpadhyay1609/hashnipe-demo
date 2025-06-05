@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, Shield } from 'lucide-react';
+import { TrendingUp, TrendingDown, Shield, Copy, Check } from 'lucide-react';
 
 interface TokenCardProps {
   token: any;
@@ -60,6 +60,15 @@ const TokenCard: React.FC<TokenCardProps> = ({ token, className }) => {
     }).format(num);
   };
 
+  const [copiedAddress, setCopiedAddress] = React.useState(false);
+
+  // Add copy function
+  const handleCopyAddress = () => {
+    navigator.clipboard.writeText(token.token_address);
+    setCopiedAddress(true);
+    setTimeout(() => setCopiedAddress(false), 2000);
+  };
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 p-3 sm:p-4 hover:bg-dark-450 transition-colors duration-200">
       {/* Token Info */}
@@ -77,7 +86,25 @@ const TokenCard: React.FC<TokenCardProps> = ({ token, className }) => {
               ></span>
             )}
           </div>
-          <div className="text-xs sm:text-sm text-gray-400">{token.symbol}</div>
+          <div className="text-xs sm:text-sm text-gray-400 flex items-center space-x-2">
+            <span>{token.symbol}</span>
+            <div className="flex items-center space-x-1 text-xs">
+              <span className="text-light-500">
+                {token.token_address?.slice(0, 4)}...{token.token_address?.slice(-4)}
+              </span>
+              <button
+                onClick={handleCopyAddress}
+                className="p-1 rounded-md hover:bg-dark-300 transition-colors"
+                title="Copy address"
+              >
+                {copiedAddress ? (
+                  <Check size={12} className="text-success-400" />
+                ) : (
+                  <Copy size={12} className="text-light-500 hover:text-light-300" />
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       
