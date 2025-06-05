@@ -16,7 +16,8 @@ import {
     Hash,
     Check,
     Copy,
-    Zap
+    Zap,
+    X
 } from 'lucide-react';
 import { shortenAddress } from './Header';
 import { useApi } from '../../context/ApiContext';
@@ -219,12 +220,6 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                         {children}
                     </motion.div>
                 </main>
-                {showSwapForm && (
-                    <InstantSwapForm
-                        isOpen={showSwapForm}
-                        onClose={() => setShowSwapForm(false)}
-                    />
-                )}
                 {/* Footer */}
                 <footer className="h-12 bg-dark-400 border-t border-dark-100 px-4 md:px-6 flex flex-col md:flex-row items-center justify-between">
                     <span className="text-light-500 text-xs">© 2024 Hashnipe. All rights reserved.</span>
@@ -238,6 +233,30 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                     </div>
                 </footer>
             </div>
+
+            {/* Add InstantSwapForm Modal */}
+            {showSwapForm && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ type: "spring", duration: 0.3 }}
+                        className="relative"
+                    >
+                        <button
+                            onClick={() => setShowSwapForm(false)}
+                            className="absolute -top-2 -right-2 p-1 rounded-full bg-dark-300 hover:bg-dark-200 transition-colors z-10"
+                        >
+                            <X size={16} className="text-light-400" />
+                        </button>
+                        <InstantSwapForm
+                            isOpen={showSwapForm}
+                            onClose={() => setShowSwapForm(false)}
+                        />
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 };

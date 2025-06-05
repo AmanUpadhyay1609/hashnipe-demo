@@ -3,6 +3,7 @@ import { Zap, ArrowRight, ArrowUpDown, Loader, CheckCircle, AlertCircle } from '
 import { useAuth } from '../context/AuthContext';
 import { useApi } from '../context/ApiContext';
 import { ethers } from 'ethers';
+import { chain } from 'lodash';
 
 // Add token configs
 const tokens = {
@@ -47,6 +48,13 @@ function useDebounce<T>(value: T, delay: number): T {
 
     return debouncedValue;
 }
+
+// Add a helper function for formatting balance display
+const formatBalance = (balance: string | undefined, decimals: number = 6): string => {
+    if (!balance) return '0.00';
+    const num = parseFloat(balance);
+    return num.toFixed(decimals);
+};
 
 // Update the component
 export const InstantSwapForm: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
@@ -94,11 +102,17 @@ export const InstantSwapForm: React.FC<{ isOpen: boolean; onClose: () => void }>
         fetchBalances();
     }, [decodedToken?.wallets?.base, jwt]);
 
-    // Update the quote fetching useEffect to use debouncedAmount
+    // Update the quote fetching useEffect
     useEffect(() => {
         const fetchQuote = async () => {
-            if (!debouncedAmount || isNaN(parseFloat(debouncedAmount)) || !decodedToken?.wallets?.base) {
+            // Add check for zero amount
+            if (!debouncedAmount ||
+                isNaN(parseFloat(debouncedAmount)) ||
+                parseFloat(debouncedAmount) <= 0 ||
+                !decodedToken?.wallets?.base
+            ) {
                 setQuote('0');
+                setError('');  // Clear any existing errors
                 return;
             }
 
@@ -108,7 +122,7 @@ export const InstantSwapForm: React.FC<{ isOpen: boolean; onClose: () => void }>
                 const toToken = isBuying ? tokens.VIRTUAL.address : tokens.ETH.address;
 
                 // Parse amount to wei
-                const amountInWei = ethers.parseUnits(amount, 18).toString();
+                const amountInWei = ethers.parseUnits(debouncedAmount, 18).toString();
 
                 const quoteParams = {
                     chainId: "8453",
@@ -163,27 +177,32 @@ export const InstantSwapForm: React.FC<{ isOpen: boolean; onClose: () => void }>
         fetchQuote();
     }, [debouncedAmount, isBuying, jwt, decodedToken?.wallets?.base]);
 
+    // Add error debouncing
+    const debouncedError = useDebounce(error, 500);
+
     // Validate amount
     const validateAmount = (value: string) => {
+        // Don't clear error immediately for empty value
         if (!value) {
-            setError('');
             return false;
         }
 
         const numAmount = parseFloat(value);
+        const fromToken = isBuying ? tokens.ETH.address : tokens.VIRTUAL.address;
+        const balance = parseFloat(balances[fromToken] || '0');
+        const maxAmount = balance * 0.9; // 90% of balance
+
         if (isNaN(numAmount) || numAmount <= 0) {
             setError('Please enter a valid amount');
             return false;
         }
 
-        const fromToken = isBuying ? tokens.ETH.address : tokens.VIRTUAL.address;
-        const balance = parseFloat(balances[fromToken] || '0');
-
-        if (numAmount > balance) {
-            setError(`Insufficient ${isBuying ? 'ETH' : 'VIRTUAL'} balance`);
+        if (numAmount > maxAmount) {
+            setError(`Maximum amount is ${formatBalance(maxAmount.toString())} ${isBuying ? 'ETH' : 'VIRTUAL'}`);
             return false;
         }
 
+        // Only clear error if all validations pass
         setError('');
         return true;
     };
@@ -205,11 +224,12 @@ export const InstantSwapForm: React.FC<{ isOpen: boolean; onClose: () => void }>
                     'Authorization': `Bearer ${jwt}`
                 },
                 body: JSON.stringify({
+                    chainId: "8453",
                     fromTokenAddress: fromToken,
                     toTokenAddress: toToken,
-                    amount: ethers.parseUnits(amount, '18').toString(),
-                    slippage: 0.5,
-                    walletAddress: decodedToken.wallets.base,
+                    amountInBN: ethers.parseUnits(amount, 18).toString(),
+                    slippage: "0.5",
+                    userWalletAddress: decodedToken.wallets.base,
                 })
             });
 
@@ -234,12 +254,23 @@ export const InstantSwapForm: React.FC<{ isOpen: boolean; onClose: () => void }>
 
     const isDisabled = useMemo(() => isLoading || !amount || parseFloat(amount) <= 0, [isLoading, amount]);
 
+    // Add computed values for balances
+    const fromTokenBalance = useMemo(() => {
+        const fromToken = isBuying ? tokens.ETH.address : tokens.VIRTUAL.address;
+        return formatBalance(balances[fromToken]);
+    }, [balances, isBuying]);
+
+    const toTokenBalance = useMemo(() => {
+        const toToken = isBuying ? tokens.VIRTUAL.address : tokens.ETH.address;
+        return formatBalance(balances[toToken]);
+    }, [balances, isBuying]);
+
     return (
         <div className="w-full max-w-md bg-dark-500 p-6 rounded-xl border border-dark-300 shadow-xl space-y-6">
             <div className="flex items-start justify-between space-x-4">
-                <div className="flex w-96 justify-between">
-                    <div className="flex items-center justify-between">
-                        <div className="flex flex-col items-center space-y-2 relative">
+                <div className="flex w-100 space-x-4 justify-between ">
+                    <div className="flex items-center justify-between ">
+                        <div className="flex flex-col items-center space-y-2 relative ">
                             {/* First Token */}
                             <div className="flex items-center space-x-2">
                                 <div className="w-6 h-6 rounded-full overflow-hidden bg-dark-400">
@@ -284,9 +315,11 @@ export const InstantSwapForm: React.FC<{ isOpen: boolean; onClose: () => void }>
                             placeholder="0.00"
                             value={amount}
                             onChange={(e) => {
-                                setAmount(e.target.value);
-                                validateAmount(e.target.value);
+                                const newAmount = e.target.value;
+                                setAmount(newAmount);
+                                validateAmount(newAmount);
                             }}
+                            max={balances[isBuying ? tokens.ETH.address : tokens.VIRTUAL.address]}
                             className="w-32 text-right p-2 rounded-md bg-dark-400 border border-dark-200 text-white placeholder-light-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
                         <div className="w-32 text-right p-2 text-light-400">
@@ -325,10 +358,10 @@ export const InstantSwapForm: React.FC<{ isOpen: boolean; onClose: () => void }>
                 </span>
             </div>
 
-            {error && (
+            {debouncedError && (
                 <div className="flex items-center space-x-2 text-error-500">
                     <AlertCircle size={16} />
-                    <p className="text-sm">{error}</p>
+                    <p className="text-sm">{debouncedError}</p>
                 </div>
             )}
         </div>
