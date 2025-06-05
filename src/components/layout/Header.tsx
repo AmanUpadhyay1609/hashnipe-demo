@@ -16,7 +16,7 @@ export const shortenAddress = (addr: string) => {
 export const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
   const [copied, setCopied] = useState(false);
   const handleTelegramConnect = () => {
-    window.open('https://t.me/SideTest_Bot', '_blank');
+    window.open(import.meta.env.VITE_TG_BOT_URL, '_blank');
   };
 
  

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import {  Bot, TrendingUp, Zap } from 'lucide-react';
+import { Bot, TrendingUp, Zap } from 'lucide-react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { TelegramIcon } from '../ui/TelegramIcon';
@@ -16,12 +16,16 @@ export const HeroSection: React.FC = () => {
     const token = searchParams.get('token');
     if (token) {
       setJwt(token);
-      console.log("Token",token)
+      console.log("Token", token)
       // Redirect to the page they tried to visit or home
       const from = (location.state as any)?.from?.pathname || '/';
       navigate(from, { replace: true });
     }
   }, [searchParams, setJwt, navigate, location]);
+
+  const handleTelegramConnect = () => {
+    window.open(import.meta.env.VITE_TG_BOT_URL, '_blank');
+  };
 
   return (
     <section className="relative overflow-hidden pt-16 pb-24 md:pt-20 md:pb-32">
@@ -57,11 +61,11 @@ export const HeroSection: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <button
-                className="btn-primary w-full sm:w-auto flex items-center justify-center space-x-2"
-                onClick={() => console.log("h")}
+                onClick={handleTelegramConnect}
+                className="flex items-center space-x-2 bg-primary-500 hover:bg-primary-600 transition-colors px-4 py-1 rounded-lg"
               >
-                {/* <span>{isAuthenticated ? 'View Dashboard' : 'Get Started'}</span> */}
                 <TelegramIcon />
+                <span className="text-white font-medium">Connect Telegram</span>
               </button>
               <button className="btn-secondary w-full sm:w-auto">Learn More</button>
             </div>
