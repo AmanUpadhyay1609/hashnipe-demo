@@ -70,7 +70,7 @@ interface Notification {
 
 export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, onSnipe, className }) => {
     const { decodedToken, jwt } = useAuth();
-    const { virtualBalance } = useApi(); // Add this to get virtual balance
+    const { virtualBalance, refreshBalance } = useApi(); // Add this to get virtual balance
     const [amount, setAmount] = useState<string>('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string>('');
@@ -159,6 +159,10 @@ export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, 
 
             const result = await snipeResponse.json();
 
+            await refreshBalance();
+
+            console.log("Result of snipe", result)
+
             setNotification({
                 type: 'success',
                 message: `${Number(result.data.deposit.finalAmount).toLocaleString()} VIRTUAL will be used to snipe ${project.virtual.name}`,
@@ -186,8 +190,8 @@ export const SnipeForm: React.FC<SnipeFormProps> = ({ project, isOpen, onClose, 
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
                 className={`fixed bottom-4 right-4 max-w-md p-4 rounded-lg border ${notification.type === 'success'
-                        ? 'bg-dark-500 border-success-500/50 text-success-400'
-                        : 'bg-dark-500 border-error-500/50 text-error-400'
+                    ? 'bg-dark-500 border-success-500/50 text-success-400'
+                    : 'bg-dark-500 border-error-500/50 text-error-400'
                     }`}
             >
                 <div className="flex items-start space-x-3">

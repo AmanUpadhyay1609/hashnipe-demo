@@ -15,10 +15,12 @@ import {
     LogOut,
     Hash,
     Check,
-    Copy
+    Copy,
+    Zap
 } from 'lucide-react';
 import { shortenAddress } from './Header';
 import { useApi } from '../../context/ApiContext';
+import { InstantSwapForm } from '../instantBuySellForm';
 
 interface UserLayoutProps {
     children: ReactNode;
@@ -27,12 +29,14 @@ interface UserLayoutProps {
 export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [showSwapForm, setShowSwapForm] = useState(false);
+
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const { decodedToken, logout } = useAuth();
     const location = useLocation();
     const [copied, setCopied] = useState(false);
-    const {virtualBalance} = useApi()
+    const { virtualBalance } = useApi()
 
     const username = decodedToken?.wallets?.base || 'User';
     const handleCopyUsername = async () => {
@@ -148,7 +152,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                         <Hash size={24} className="text-primary-400" />
                     </button>
                     <div className="flex-1 max-w-full md:max-w-2xl">
-                        <div className={`relative ${isSearchFocused ? 'ring-2 ring-primary-500' : ''}`}> 
+                        <div className={`relative ${isSearchFocused ? 'ring-2 ring-primary-500' : ''}`}>
                             <Search
                                 size={20}
                                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-light-400"
@@ -164,6 +168,12 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                             />
                         </div>
                     </div>
+                    <button
+                        onClick={() => setShowSwapForm(true)}
+                        className="p-2 rounded-lg hover:bg-dark-300 transition-colors"
+                    >
+                        <Zap size={20} className="text-primary-400" />
+                    </button>
                     <div className="flex items-center space-x-2 md:space-x-4 ml-2 md:ml-6">
                         {/* Virtual Balance Display */}
                         <div className="hidden md:flex items-center space-x-2 bg-dark-300 px-3 py-1 rounded-lg">
@@ -209,6 +219,12 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                         {children}
                     </motion.div>
                 </main>
+                {showSwapForm && (
+                    <InstantSwapForm
+                        isOpen={showSwapForm}
+                        onClose={() => setShowSwapForm(false)}
+                    />
+                )}
                 {/* Footer */}
                 <footer className="h-12 bg-dark-400 border-t border-dark-100 px-4 md:px-6 flex flex-col md:flex-row items-center justify-between">
                     <span className="text-light-500 text-xs">© 2024 Hashnipe. All rights reserved.</span>
