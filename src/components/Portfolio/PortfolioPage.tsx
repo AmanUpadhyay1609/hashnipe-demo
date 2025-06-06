@@ -8,15 +8,17 @@ import axios from 'axios';
 import { virtualTokensData } from '../../data/tokenData';
 import { useGenesis } from '../../context/GenesisContext';
 import { useAuth } from '../../context/AuthContext';
+import GenesisList from './SnipeStatus';
 
 const PortfolioPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [allTokens, setAllTokens] = useState<any[]>([]);
   const [virtualTokens, setVirtualTokens] = useState<any[]>([]);
+  const [genesisLaunches, setGenesisLaunches] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { decodedToken } = useAuth();
+  const { decodedToken, jwt } = useAuth();
 
 
   useEffect(() => {
@@ -62,6 +64,29 @@ const PortfolioPage: React.FC = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const fetchGenesisLaunches = async () => {
+      try {
+        const response = await fetch(
+          `https://dexter-backend-ucdt5.ondigitalocean.app/api/user-transactions/${decodedToken.wallets.base}/agents`,
+          {
+            headers: {
+              'Authorization': `Bearer ${jwt}`,
+            }
+          }
+        );
+        const data = await response.json();
+        setGenesisLaunches(data.data.agents || []);
+      } catch (err) {
+        console.error('Failed to fetch genesis launches:', err);
+      }
+    };
+
+    if (activeTab === 'genesis') {
+      fetchGenesisLaunches();
+    }
+  }, [activeTab]);
+
   const renderContent = () => {
     if (isLoading) return <div className="text-center py-4">Loading tokens...</div>;
     if (error) return <div className="text-red-500 text-center py-4">{error}</div>;
@@ -72,12 +97,14 @@ const PortfolioPage: React.FC = () => {
       case 'virtual':
         return <TokenList tokens={virtualTokens} isVirtual />;
       case 'genesis':
-        return (
+        return genesisLaunches.length > 0 ? (
+          <GenesisList launches={genesisLaunches} />
+        ) : (
           <div className="bg-dark-400 rounded-xl p-6 sm:p-8">
             <div className="flex flex-col items-center">
               <div className="text-4xl font-bold text-primary-400 mb-4">🚀</div>
-              <h2 className="text-2xl font-bold text-white mb-2">Genesis Launches Coming Soon</h2>
-              <p className="text-gray-400 text-center">New token launches will be available here soon.</p>
+              <h2 className="text-2xl font-bold text-white mb-2">No Genesis Launches Yet</h2>
+              <p className="text-gray-400 text-center">You haven't participated in any genesis launches yet.</p>
             </div>
           </div>
         );

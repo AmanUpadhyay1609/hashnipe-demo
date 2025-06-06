@@ -111,8 +111,8 @@ export function ApiProvider({ children }: { children: React.ReactNode }) {
             setIsLoadingBalance(false);
         }
     }, [isAuthenticated, decodedToken?.wallets?.base, getBalance]);
+    
 
-    // Swap function
     const swap = useCallback(async ({
         fromTokenAddress,
         toTokenAddress,
