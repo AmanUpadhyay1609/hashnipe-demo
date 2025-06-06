@@ -40,9 +40,8 @@ const PortfolioPage: React.FC = () => {
 
         // Fetch real tokens using your existing function
 
-        console.log("Balances", balances)
         if (!balances) throw new Error('Failed to fetch token balances');
-        const filteredToken = balances.filter((token: any) => {
+        const filteredToken = balances.result.filter((token: any) => {
           return token.usd_price > 0;
         });
 

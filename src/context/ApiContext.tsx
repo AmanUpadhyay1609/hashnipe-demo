@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useCallback, useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
-import { ethers } from 'ethers';
 import { useAuth } from './AuthContext';
 import axios from 'axios';
 
@@ -126,7 +125,7 @@ export function ApiProvider({ children }: { children: React.ReactNode }) {
             const moralisApi = "https://deep-index.moralis.io/api/v2.2/wallets/";
             const url = moralisApi + address + "/tokens?chain=" + "base";
             const data = (await axios.get(url, options)).data;
-            const result = data.result;
+            const result = data;
 
             setallTokens(result);
             return result;
