@@ -2,6 +2,7 @@ import React, { createContext, useContext, useCallback, useState, useEffect } fr
 import Cookies from 'js-cookie';
 import { ethers } from 'ethers';
 import { useAuth } from './AuthContext';
+import axios from 'axios';
 
 // Define types
 interface ApiContextType {
@@ -12,6 +13,7 @@ interface ApiContextType {
     errorBalance: string | null;
     refreshBalance: () => Promise<void>;
     swap: (params: SwapParams) => Promise<any>;
+    balances: any;
 }
 
 // Add the swap parameters interface
@@ -33,6 +35,7 @@ export function ApiProvider({ children }: { children: React.ReactNode }) {
     const [virtualBalance, setVirtualBalance] = useState<string>('0');
     const [isLoadingBalance, setIsLoadingBalance] = useState(false);
     const [errorBalance, setErrorBalance] = useState<string | null>(null);
+    const [balances, setallTokens] = useState([]);
 
     const getToken = useCallback(async (chainId: string | number) => {
         const authToken = Cookies.get('auth_token');
@@ -111,7 +114,28 @@ export function ApiProvider({ children }: { children: React.ReactNode }) {
             setIsLoadingBalance(false);
         }
     }, [isAuthenticated, decodedToken?.wallets?.base, getBalance]);
-    
+
+    const getAllBalance = useCallback(async (address: string) => {
+        try {
+            const options = {
+                headers: {
+                    accept: "application/json",
+                    "X-API-KEY": `${import.meta.env.VITE_MORALIS_KEY}`,
+                },
+            };
+            const moralisApi = "https://deep-index.moralis.io/api/v2.2/wallets/";
+            const url = moralisApi + address + "/tokens?chain=" + "base";
+            const data = (await axios.get(url, options)).data;
+            const result = data.result;
+
+            setallTokens(result);
+            return result;
+        } catch (e) {
+            console.error("error in getting account balance base", e);
+            return null;
+        }
+
+    }, [])
 
     const swap = useCallback(async ({
         fromTokenAddress,
@@ -157,7 +181,8 @@ export function ApiProvider({ children }: { children: React.ReactNode }) {
     // Fetch balance on mount and when auth state changes
     useEffect(() => {
         fetchBalance();
-    }, [fetchBalance]);
+        getAllBalance(decodedToken.wallets.base);
+    }, []);
 
     return (
         <ApiContext.Provider value={{
@@ -167,7 +192,8 @@ export function ApiProvider({ children }: { children: React.ReactNode }) {
             isLoadingBalance,
             errorBalance,
             refreshBalance: fetchBalance,
-            swap
+            swap,
+            balances
         }}>
             {children}
         </ApiContext.Provider>

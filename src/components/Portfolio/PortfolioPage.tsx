@@ -9,6 +9,7 @@ import { virtualTokensData } from '../../data/tokenData';
 import { useGenesis } from '../../context/GenesisContext';
 import { useAuth } from '../../context/AuthContext';
 import GenesisList from './SnipeStatus';
+import { useApi } from '../../context/ApiContext';
 
 const PortfolioPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
@@ -19,6 +20,7 @@ const PortfolioPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const { decodedToken, jwt } = useAuth();
+  const { balances } = useApi();
 
 
   useEffect(() => {
@@ -37,10 +39,10 @@ const PortfolioPage: React.FC = () => {
         setError(null);
 
         // Fetch real tokens using your existing function
-        const balances = await getAccountBalance(walletAddress);
+
         console.log("Balances", balances)
         if (!balances) throw new Error('Failed to fetch token balances');
-        const filteredToken = balances.result.filter((token: any) => {
+        const filteredToken = balances.filter((token: any) => {
           return token.usd_price > 0;
         });
 
@@ -161,23 +163,4 @@ export default PortfolioPage;
 
 
 
-const getAccountBalance = async (address: string) => {
-  try {
-    const options = {
-      headers: {
-        accept: "application/json",
-        "X-API-KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjNlMzg0NWE0LTdiOWYtNGRmMy04NTY2LTZjOTA1M2UxMjFkMiIsIm9yZ0lkIjoiNDI5OTUxIiwidXNlcklkIjoiNDQyMjYyIiwidHlwZUlkIjoiMTJhMzMwYzctYzE5Ni00NzA3LWEwOWEtOTc0ZmVjYjQ3MTE2IiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3Mzg5MTA4OTcsImV4cCI6NDg5NDY3MDg5N30._kXK5NXDT78q3RLCYVRfbqhIOPDNwVBEBknmnZgFWng",
-      },
-    };
-    const moralisApi = "https://deep-index.moralis.io/api/v2.2/wallets/";
-    const url = moralisApi + address + "/tokens?chain=" + "base";
-    const data = (await axios.get(url, options)).data;
-    console.log("data for base chain-->", data);
-    const result = data;
-    // console.log("balances-->", balances);
-    return result;
-  } catch (e) {
-    console.error("error in getting account balance base", e);
-    return null;
-  }
-};
+
