@@ -1,103 +1,220 @@
-import React, { useState } from 'react';
-import { ArrowDownUp, Zap } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ArrowDownUp, ChevronDown, SearchIcon } from 'lucide-react';
 
-interface SwapFormProps {
-    isOpen: boolean;
-    onClose: () => void;
+interface Token {
+    symbol: string;
+    address: string;
+    balance?: string;
+    decimals: number;
+    logo?: string;
 }
 
-export const SwapForm: React.FC<SwapFormProps> = ({ isOpen, onClose }) => {
-    const [fromAmount, setFromAmount] = useState<string>('');
-    const [toAmount, setToAmount] = useState<string>('');
-    const [fromToken, setFromToken] = useState<string>('ETH');
-    const [toToken, setToToken] = useState<string>('VIRTUAL');
+interface SwapFormProps {
+    userBalances: Token[];
+    supportedTokens: any;
+}
 
-    const handleSwap = () => {
-        // Implement swap logic here
-        console.log('Swapping', fromAmount, fromToken, 'to', toAmount, toToken);
+export const SwapForm: React.FC<SwapFormProps> = ({ userBalances, supportedTokens }) => {
+    const [fromToken, setFromToken] = useState<Token | null>(null);
+    const [toToken, setToToken] = useState<Token | null>(null);
+    const [amount, setAmount] = useState('');
+    const [showFromDropdown, setShowFromDropdown] = useState(false);
+    const [showToDropdown, setShowToDropdown] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    // Filter available 'to' tokens by removing selected 'from' token
+    const availableToTokens = useMemo(() => {
+        return supportedTokens.filter(token => token.address !== fromToken?.address);
+    }, [supportedTokens, fromToken]);
+
+    const handleFromTokenSelect = (token: Token) => {
+        setFromToken(token);
+        setShowFromDropdown(false);
+        // If selected token is same as 'to' token, clear 'to' token
+        if (token.address === toToken?.address) {
+            setToToken(null);
+        }
     };
 
-    if (!isOpen) return null;
-
     return (
-        <div className="bg-dark-500 rounded-2xl border border-dark-300 shadow-xl h-fit">
-            <div className="p-4 border-b border-dark-300">
-                <h2 className="text-xl font-semibold text-white">Swap Tokens</h2>
-            </div>
-
-            <div className="p-4 space-y-4">
-                {/* From Token */}
+        <div className="bg-dark-400 rounded-xl p-6 space-y-6">
+            <div className="space-y-4">
+                {/* From Token Section */}
                 <div className="space-y-2">
-                    <label className="text-sm text-light-400">From</label>
-                    <div className="flex items-center space-x-2 bg-dark-400 rounded-lg p-3">
-                        <input
-                            type="number"
-                            value={fromAmount}
-                            onChange={(e) => setFromAmount(e.target.value)}
-                            placeholder="0.0"
-                            className="w-full bg-transparent text-white text-lg focus:outline-none"
-                        />
-                        <select
-                            value={fromToken}
-                            onChange={(e) => setFromToken(e.target.value)}
-                            className="bg-dark-300 text-white px-3 py-1 rounded-md focus:outline-none"
-                        >
-                            <option value="ETH">ETH</option>
-                            <option value="USDT">USDT</option>
-                            <option value="USDC">USDC</option>
-                        </select>
+                    <label className="text-sm text-light-500">From</label>
+                    <div className="relative">
+                        <div className="flex items-center justify-between p-4 bg-dark-300 rounded-lg">
+                            <div className="flex items-center space-x-3">
+                                {fromToken?.logo && (
+                                    <img
+                                        src={fromToken.logo}
+                                        alt={fromToken.symbol}
+                                        className="w-6 h-6 rounded-full"
+                                    />
+                                )}
+                                <button
+                                    onClick={() => setShowFromDropdown(!showFromDropdown)}
+                                    className="flex items-center space-x-2"
+                                >
+                                    <span className="text-white">
+                                        {fromToken ? fromToken.symbol : 'Select token'}
+                                    </span>
+                                    <ChevronDown className="w-4 h-4 text-light-500" />
+                                </button>
+                            </div>
+                            <input
+                                type="number"
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                                placeholder="0.0"
+                                className="w-1/2 text-right bg-transparent focus:outline-none text-white"
+                            />
+                        </div>
+
+                        {/* From Token Dropdown */}
+                        {showFromDropdown && (
+                            <div className="absolute z-10 w-full mt-2 bg-dark-300 rounded-lg shadow-xl">
+                                <div className="p-4 border-b border-dark-200">
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            placeholder="Search tokens"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="w-full pl-10 pr-4 py-2 bg-dark-400 rounded-lg text-white focus:outline-none"
+                                        />
+                                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-light-500" />
+                                    </div>
+                                </div>
+                                <div className="max-h-60 overflow-y-auto">
+                                    {userBalances
+                                        .filter(token =>
+                                            token.symbol.toLowerCase().includes(searchTerm.toLowerCase())
+                                        )
+                                        .map(token => (
+                                            <button
+                                                key={token.address}
+                                                onClick={() => handleFromTokenSelect(token)}
+                                                className="w-full flex items-center space-x-3 p-4 hover:bg-dark-400 transition-colors"
+                                            >
+                                                {token.logo && (
+                                                    <img
+                                                        src={token.logo}
+                                                        alt={token.symbol}
+                                                        className="w-6 h-6 rounded-full"
+                                                    />
+                                                )}
+                                                <div className="flex-1 text-left">
+                                                    <div className="text-white">{token.symbol}</div>
+                                                    <div className="text-sm text-light-500">
+                                                        Balance: {token.balance}
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Swap Button */}
-                <div className="flex justify-center">
-                    <button className="p-2 rounded-full bg-dark-300 hover:bg-dark-200 transition-colors">
-                        <ArrowDownUp size={20} className="text-light-400" />
-                    </button>
-                </div>
-
-                {/* To Token */}
-                <div className="space-y-2">
-                    <label className="text-sm text-light-400">To</label>
-                    <div className="flex items-center space-x-2 bg-dark-400 rounded-lg p-3">
-                        <input
-                            type="number"
-                            value={toAmount}
-                            onChange={(e) => setToAmount(e.target.value)}
-                            placeholder="0.0"
-                            className="w-full bg-transparent text-white text-lg focus:outline-none"
-                        />
-                        <select
-                            value={toToken}
-                            onChange={(e) => setToToken(e.target.value)}
-                            className="bg-dark-300 text-white px-3 py-1 rounded-md focus:outline-none"
-                        >
-                            <option value="VIRTUAL">VIRTUAL</option>
-                        </select>
-                    </div>
-                </div>
-
-                {/* Swap Button */}
+                {/* Swap Direction Button */}
                 <button
-                    onClick={handleSwap}
-                    className="w-full bg-primary-500 hover:bg-primary-600 text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                    className="mx-auto flex items-center justify-center w-10 h-10 rounded-full bg-dark-300 hover:bg-dark-200 transition-colors"
+                    onClick={() => {
+                        const temp = fromToken;
+                        setFromToken(toToken);
+                        setToToken(temp);
+                    }}
                 >
-                    <Zap size={18} />
-                    <span>Swap</span>
+                    <ArrowDownUp className="w-4 h-4 text-light-500" />
                 </button>
 
-                {/* Price Info */}
-                <div className="bg-dark-400/60 rounded-lg p-3 text-sm text-light-400">
-                    <div className="flex justify-between mb-1">
-                        <span>Price</span>
-                        <span>1 VIRTUAL = 0.0001 ETH</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span>Slippage</span>
-                        <span>0.5%</span>
+                {/* To Token Section */}
+                <div className="space-y-2">
+                    <label className="text-sm text-light-500">To</label>
+                    <div className="relative">
+                        <div className="flex items-center justify-between p-4 bg-dark-300 rounded-lg">
+                            <div className="flex items-center space-x-3">
+                                {toToken?.logo && (
+                                    <img
+                                        src={toToken.logo}
+                                        alt={toToken.symbol}
+                                        className="w-6 h-6 rounded-full"
+                                    />
+                                )}
+                                <button
+                                    onClick={() => setShowToDropdown(!showToDropdown)}
+                                    className="flex items-center space-x-2"
+                                >
+                                    <span className="text-white">
+                                        {toToken ? toToken.symbol : 'Select token'}
+                                    </span>
+                                    <ChevronDown className="w-4 h-4 text-light-500" />
+                                </button>
+                            </div>
+                            <div className="text-right text-light-500">
+                                {/* Estimated output amount would go here */}
+                                -
+                            </div>
+                        </div>
+
+                        {/* To Token Dropdown */}
+                        {showToDropdown && (
+                            <div className="absolute z-10 w-full mt-2 bg-dark-300 rounded-lg shadow-xl">
+                                <div className="p-4 border-b border-dark-200">
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            placeholder="Search tokens"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="w-full pl-10 pr-4 py-2 bg-dark-400 rounded-lg text-white focus:outline-none"
+                                        />
+                                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-light-500" />
+                                    </div>
+                                </div>
+                                <div className="max-h-60 overflow-y-auto">
+                                    {availableToTokens
+                                        .filter(token =>
+                                            token.symbol.toLowerCase().includes(searchTerm.toLowerCase())
+                                        )
+                                        .map(token => (
+                                            <button
+                                                key={token.address}
+                                                onClick={() => {
+                                                    setToToken(token);
+                                                    setShowToDropdown(false);
+                                                }}
+                                                className="w-full flex items-center space-x-3 p-4 hover:bg-dark-400 transition-colors"
+                                            >
+                                                {token.logo && (
+                                                    <img
+                                                        src={token.logo}
+                                                        alt={token.symbol}
+                                                        className="w-6 h-6 rounded-full"
+                                                    />
+                                                )}
+                                                <div className="text-white">{token.symbol}</div>
+                                            </button>
+                                        ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
+
+            <button
+                disabled={!fromToken || !toToken || !amount}
+                className="w-full py-3 px-4 rounded-lg bg-primary-500 text-white font-medium hover:bg-primary-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                {!fromToken || !toToken
+                    ? 'Select tokens'
+                    : !amount
+                        ? 'Enter amount'
+                        : 'Swap'}
+            </button>
         </div>
     );
-}; 
+};

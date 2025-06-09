@@ -10,6 +10,8 @@ import { useGenesis } from '../../context/GenesisContext';
 import { useAuth } from '../../context/AuthContext';
 import GenesisList from './SnipeStatus';
 import { useApi } from '../../context/ApiContext';
+import {SwapForm} from './../SwapForm';
+import { Suportedtokens } from '../../data/supportedTokens';
 
 const PortfolioPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
@@ -88,7 +90,7 @@ const PortfolioPage: React.FC = () => {
     }
   }, [activeTab]);
 
-  const renderContent = () => {
+  const renderMainContent = () => {
     if (isLoading) return <div className="text-center py-4">Loading tokens...</div>;
     if (error) return <div className="text-red-500 text-center py-4">{error}</div>;
 
@@ -109,18 +111,7 @@ const PortfolioPage: React.FC = () => {
             </div>
           </div>
         );
-      case 'unlock':
-        return (
-          <div className="bg-dark-400 rounded-xl p-6 sm:p-8">
-            <div className="flex flex-col items-center">
-              <div className="text-4xl font-bold text-primary-400 mb-4">⏰</div>
-              <h2 className="text-2xl font-bold text-white mb-2">Token Unlock Schedule</h2>
-              <p className="text-gray-400 text-center">Token unlock information will be displayed here.</p>
-            </div>
-          </div>
-        );
-      default:
-        return <TokenList tokens={allTokens} />;
+      // ...other cases
     }
   };
 
@@ -140,18 +131,33 @@ const PortfolioPage: React.FC = () => {
           />
         </div>
 
-        {isLoading ? (
-          <div className="bg-dark-400 rounded-xl p-6 sm:p-8">
-            <div className="animate-pulse">
-              <div className="h-4 bg-primary-400/10 rounded w-32 mb-4"></div>
-              <div className="h-4 bg-primary-400/10 rounded w-24"></div>
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Main Content Area */}
+          <div className="flex-1">
+            {isLoading ? (
+              <div className="bg-dark-400 rounded-xl p-6 sm:p-8">
+                <div className="animate-pulse">
+                  <div className="h-4 bg-primary-400/10 rounded w-32 mb-4"></div>
+                  <div className="h-4 bg-primary-400/10 rounded w-24"></div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {renderMainContent()}
+              </div>
+            )}
+          </div>
+
+          {/* Swap Form Sidebar */}
+          <div className="lg:w-96">
+            <div className="sticky top-6">
+              <SwapForm
+                userBalances={allTokens}
+                supportedTokens={Suportedtokens}
+              />
             </div>
           </div>
-        ) : (
-          <div className="space-y-6">
-            {renderContent()}
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

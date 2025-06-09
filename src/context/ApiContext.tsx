@@ -106,13 +106,14 @@ export function ApiProvider({ children }: { children: React.ReactNode }) {
 
 
             setVirtualBalance(response);
+            console.log("Virtual balance", response)
         } catch (err) {
             setErrorBalance('Failed to fetch balance');
             console.error('Balance fetch error:', err);
         } finally {
             setIsLoadingBalance(false);
         }
-    }, [isAuthenticated, decodedToken?.wallets?.base, getBalance]);
+    }, [isAuthenticated, decodedToken?.wallets?.base]);
 
     const getAllBalance = useCallback(async (address: string) => {
         try {
@@ -176,6 +177,8 @@ export function ApiProvider({ children }: { children: React.ReactNode }) {
             throw error;
         }
     }, []);
+
+
 
     // Fetch balance on mount and when auth state changes
     useEffect(() => {
